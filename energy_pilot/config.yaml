@@ -1,9 +1,8 @@
-name: Energipilot
-version: "0.103.0"
+name: Energipilot (Kostal test)
+version: "0.103.0-kostal1"
 slug: energy_pilot
 description: Batteri, sol og bilopladning i én app - i skygge først, styrer når du siger til.
 url: https://github.com/Clahen86/Energy-pilot
-image: "ghcr.io/clahen86/{arch}-energy-pilot-addon"
 arch:
   - amd64
   - aarch64
