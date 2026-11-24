@@ -217,7 +217,7 @@ class Controller:
                         break
             dev = (by_id.get(anchor) or {}).get("device_id")
             plat = (by_id.get(anchor) or {}).get("platform")
-            found = [e["entity_id"] for e in entities if not e.get("disabled_by") and e["entity_id"].split(".")[0] in ("select", "number", "switch", "button")
+            found = [e["entity_id"] for e in entities if not e.get("disabled_by") and e["entity_id"].split(".")[0] in ("select", "number", "switch", "button", "time")
                      and ((dev and e.get("device_id") == dev) or (plat and e.get("platform") == plat and plat not in GENERIC_PLATFORMS
                                                                    and not (part == "car" and dev)))]
             # The charger: only its own device when it has one - Tuya, say, also has the air conditioner and the cat's
@@ -230,6 +230,20 @@ class Controller:
                 # and numbers without a device - picked up by their fixed names.
                 found += [e["entity_id"] for e in entities if not e.get("disabled_by") and e["entity_id"] not in found
                           and YAML_CONTROLS.match(e["entity_id"])]
+            if part == "battery" and not found:
+                # The battery read from one integration (SolaX's own, local) and steered through another (SolaX
+                # Modbus) on a device of its own: the controls of the chosen profile's integration - or of the one
+                # inverter integration here that has controls.
+                p = adapters.PROFILES.get(self.ov.settings.get("inverter_profile") or "") or {}
+                chosen = p.get("platform") or self.ov.settings.get("inverter_profile")
+                known = {k for k in adapters.PROFILES} | {q.get("platform") for q in adapters.PROFILES.values() if q.get("platform")}
+                ctl = [e for e in entities if not e.get("disabled_by") and e["entity_id"].split(".")[0] in ("select", "number", "switch", "button", "time")
+                       and e.get("platform") in known and e.get("platform") not in GENERIC_PLATFORMS]
+                have = {e.get("platform") for e in ctl}
+                pick = chosen if chosen in have else (next(iter(have)) if len(have) == 1 else None)
+                if pick:
+                    found = [e["entity_id"] for e in ctl if e.get("platform") == pick]
+                    plat = pick
             # The anchor's own device first: with two inverters on one integration (a Kostal G3 and a Plenticore Plus)
             # a profile's pattern then finds this one's controls, not whichever sorts first.
             own = {e["entity_id"] for e in entities if dev and e.get("device_id") == dev}
@@ -242,6 +256,8 @@ class Controller:
                 d = (devices or {}).get(dev or "") if "devices" in dir() else None
                 self.battery_serial = (d or {}).get("serial_number") or ""  # Alpha ESS wants the serial
 
+        self._mend_wrong_profile()
+
         # The extra chargers: the controls on the device of their power (or plug) sensor.
         from . import chargers
 
@@ -250,7 +266,7 @@ class Controller:
             dev = (by_id.get(anchor) or {}).get("device_id")
             plat = (by_id.get(anchor) or {}).get("platform")
             found = [e["entity_id"] for e in entities if not e.get("disabled_by") and dev and e.get("device_id") == dev
-                     and e["entity_id"].split(".")[0] in ("select", "number", "switch", "button")]
+                     and e["entity_id"].split(".")[0] in ("select", "number", "switch", "button", "time")]
             self.entities[part], self.platforms[part], self.car_devices[part] = sorted(found), plat, dev
             self.lone_ok[part] = bool(dev)
 
@@ -276,7 +292,7 @@ class Controller:
         for part, bt in zip(self.bat_parts(), batteries.extras(self.ov.settings)):
             reg = by_id.get(bt.get("soc")) or {}
             dev, plat = reg.get("device_id"), reg.get("platform")
-            found = [e["entity_id"] for e in entities if not e.get("disabled_by") and e["entity_id"].split(".")[0] in ("select", "number", "switch", "button")
+            found = [e["entity_id"] for e in entities if not e.get("disabled_by") and e["entity_id"].split(".")[0] in ("select", "number", "switch", "button", "time")
                      and ((dev and e.get("device_id") == dev) or (plat and e.get("platform") == plat and plat not in ("mqtt", "template")
                                                                    and plat != self.platforms.get("battery")))]
             d = (devices or {}).get(dev or "") if "devices" in dir() else None
@@ -300,10 +316,14 @@ class Controller:
             if not reg:
                 continue
             dev = reg.get("device_id")
+            # A known charger integration (Wallbox, Zaptec, Peblar …) keeps its own way even with its switch chosen by
+            # hand - the generic way paused a Wallbox and lost Zaptec's services. Else the switch and a current control.
+            plat = reg.get("platform") if reg.get("platform") in adapters.CHARGER_SERVICES else None
+            kinds = r"(number|select|switch|button)\." if plat else r"(number|select)\."
             own = [e["entity_id"] for e in entities if not e.get("disabled_by") and dev and e.get("device_id") == dev
-                   and re.match(r"(number|select)\.", e["entity_id"])]
+                   and re.match(kinds, e["entity_id"])]
             self.entities[part] = sorted(set(own) | {sw})
-            self.platforms[part], self.chosen[part] = None, sw  # the generic way: the switch and a current control
+            self.platforms[part], self.chosen[part] = plat, sw
             if part == "car":
                 self.car_device = dev
             else:
@@ -334,6 +354,23 @@ class Controller:
         more = batteries.extras(self.ov.settings)
         i = self.bat_parts().index(part) if part in self.bat_parts() else -1
         return more[i] if 0 <= i < len(more) else {}
+
+    def _mend_wrong_profile(self) -> None:
+        """A profile chosen by hand that finds none of its controls, while another one fits (Fox ESS Modbus with the
+        cloud profile chosen): the one that fits is taken - saved, so the choice shows it and the change log says who."""
+        chosen = self.ov.settings.get("inverter_profile")
+        p = adapters.PROFILES.get(chosen or "")
+        ents = self.entities.get("battery") or []
+        if not p or not ents:
+            return
+        need = [s[0] for steps in (p["normal"], p["hold"], p["charge"]) for s in steps
+                if s[1] not in ("service", "grid") and s[0] not in (p.get("optional") or [])]
+        if not need or any(adapters.hit(pat, e) for pat in need for e in ents):
+            return
+        guess = adapters.guess_profile(ents, {self.platforms.get("battery") or ""}, self.model)
+        if guess and guess != chosen:
+            _LOGGER.warning("Profile %s finds none of its controls here - %s fits, and is used instead", chosen, guess)
+            self.ov.save({"inverter_profile": guess}, "energy_pilot")
 
     def profile_key(self, part: str = "battery") -> str | None:
         if part != "battery":
@@ -445,7 +482,7 @@ class Controller:
         prof = adapters.PROFILES.get(key or "") or {}
         if prof.get("anywhere"):
             pats = [st[0] for i in ("normal", "hold", "charge", "export") for st in prof.get(i, []) if isinstance(st[0], str)]
-            extra = [e for e in self.ha.states if e not in own and e.split(".")[0] in ("select", "number", "switch", "button")
+            extra = [e for e in self.ha.states if e not in own and e.split(".")[0] in ("select", "number", "switch", "button", "time")
                      and any(adapters.hit(p, e) for p in pats)]
             return own + sorted(extra)
         return own
@@ -785,7 +822,7 @@ class Controller:
                 force = self._forced(prof) and self.is_battery(part)
                 if self.is_battery(part):
                     async with self._lock():
-                        entry["result"] = await self._send(calls, force=force)
+                        entry["result"] = await self._send_kept(prof, calls, force)
                 else:
                     entry["result"] = await self._send(calls)
                 if entry["result"] != "ok":  # what failed, for the developer's view of the brand (setupinfo.py)
@@ -992,9 +1029,23 @@ class Controller:
             if why == "back":
                 _LOGGER.info("%s controls are back (%s) - set again", part, ", ".join(sorted(back)))
             async with self._lock():
-                prev["result"] = await self._send(prev["calls"], force=why != "due" or self._forced(prof))
+                if why == "due":
+                    prev["result"] = await self._send_kept(prof, prev["calls"], self._forced(prof))
+                else:
+                    prev["result"] = await self._send(prev["calls"], force=True)
             prev["t"] = time.time()
             self._note_resent(part, why)
+
+    async def _send_kept(self, prof: dict[str, Any], calls: list[dict[str, Any]], force: bool) -> str:
+        """Forced writes limited to the profile's "keepalive_only" (SolarEdge: the timer and the command) - the rest sits
+        in the inverter's flash and is written only when it changed."""
+        only = prof.get("keepalive_only")
+        if not force or not only:
+            return await self._send(calls, force=force)
+        hit = lambda c: any(re.search(r, str((c.get("data") or {}).get("entity_id") or "")) for r in only)  # noqa: E731
+        rest = await self._send([c for c in calls if not hit(c)])
+        kept = await self._send([c for c in calls if hit(c)], force=True)
+        return kept if rest == "ok" else rest
 
     async def _send(self, calls: list[dict[str, Any]], force: bool = False) -> str:
         """Send the calls - only those whose value isn't already set (some links, like Solarman, drop writes now

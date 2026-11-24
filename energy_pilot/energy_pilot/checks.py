@@ -68,7 +68,9 @@ class ExportCap:
 
 # Battery integrations that can only read (or where another system already runs the battery): the integration that
 # can control it instead, and which message.
-READ_ONLY = {"powerwall": ("Teslemetry", "readonly"), "solis": ("Solis Modbus", "readonly"), "sems": ("GoodWe (local)", "readonly"),
+# Not READ_ONLY (the links further down): that name was given twice, so this one was overwritten and the check failed
+# for every home with one of them - and took all its other checks with it.
+BATTERY_READ_ONLY = {"powerwall": ("Teslemetry", "readonly"), "solis": ("Solis Modbus", "readonly"), "sems": ("GoodWe (local)", "readonly"),
              "hanchuess": (None, "readonly"), "omnibattery": (None, "other_ems")}
 
 
@@ -160,8 +162,8 @@ def run(engine: Any, hours: list, b: Any, plan: Any, end_value: float) -> list[d
     # 3e. The battery comes from an integration that can only read it (found in users' setups): said plainly, with the
     #     integration that can control it - or, for a battery another system already runs, that one controls it.
     plat = (reg.get(se) or {}).get("platform") if se else None
-    if plat in READ_ONLY:
-        alt, why = READ_ONLY[plat]
+    if plat in BATTERY_READ_ONLY:
+        alt, why = BATTERY_READ_ONLY[plat]
         key = "battery_" + why + ("_alt" if alt else "")
         out.append({"key": key, "level": "info", "vals": {"i": plat, **({"alt": alt} if alt else {})}, "goto": "battery"})
 
@@ -243,6 +245,7 @@ def run(engine: Any, hours: list, b: Any, plan: Any, end_value: float) -> list[d
 
     out += house_history(engine, st)
     out += read_only(engine, st)
+    out += solaredge_storage(engine, st)
     out += alpha_period(engine)
     out += inverter_floor(engine, b)
     return out
@@ -256,7 +259,16 @@ READ_ONLY = {
     "fusion_solar": ("Huawei", "Huawei Solar", "https://my.home-assistant.io/redirect/hacs_repository/?owner=wlcrs&repository=huawei_solar&category=integration"),
     # Found in the shared setups: GoodWe through its cloud (SEMS) and Solis through its cloud - both read only.
     "sems": ("GoodWe", "GoodWe", "https://my.home-assistant.io/redirect/config_flow_start/?domain=goodwe"),
+    # HA's own SolaX integration (the Pocket WiFi's local API) only reads: SolaX Modbus can control it (X1/X3 Gen4+).
+    "solax": ("SolaX", "SolaX Modbus", "https://my.home-assistant.io/redirect/hacs_repository/?owner=wills106&repository=homeassistant-solax-modbus&category=integration"),
     "solis": ("Solis", "Solis Modbus", "https://my.home-assistant.io/redirect/hacs_repository/?owner=Pho3niX90&repository=solis_modbus&category=integration"),
+    # Kostal's own HA integration reads, and sets little more than the battery's minimum: Kostal Plenticore Battery
+    # Control (its own profile here) charges and discharges it.
+    "kostal_plenticore": ("Kostal", "Kostal Plenticore Battery Control",
+                          "https://my.home-assistant.io/redirect/hacs_repository/?owner=mbuhansen&repository=kostal_plenticore_battery_control&category=integration"),
+    # The old Solarman integration (StephanJoubert, same domain "solarman") only reads - davidrapan's controls a Deye.
+    "solarman_old": ("Deye", "Solarman (davidrapan)",
+                     "https://my.home-assistant.io/redirect/hacs_repository/?owner=davidrapan&repository=ha-solarman&category=integration"),
 }
 
 
@@ -267,13 +279,37 @@ def read_only(engine: Any, st: dict[str, Any]) -> list[dict[str, Any]]:
     reg = getattr(ctl, "_ent_reg", None) or {}
     soc = engine.ov.role("battery_soc")
     plat = (reg.get(soc or "") or {}).get("platform")
-    if plat not in READ_ONLY or plat in (st.get("readonly_dismissed") or []):
+    if plat == "solarman":
+        # The same domain for both: the old one makes no controls (no programme SOC, no time of use) - say so, even if a
+        # Deye profile was guessed from the model (its steps would find nothing)
+        mine = [e for e, r in reg.items() if (r or {}).get("platform") == "solarman" and re.match(r"(number|select)\..*(program_\d_soc|time_of_use)$", e)]
+        if mine:
+            return []
+        plat = "solarman_old"
+    elif plat not in READ_ONLY:
         return []
-    if ctl and (ctl.profile_key("battery") or st.get("custom_profile")):
+    elif ctl and (ctl.profile_key("battery") or st.get("custom_profile")):
         return []  # something to control it with was found (or set up by hand): nothing to say
+    if plat not in READ_ONLY or plat in (st.get("readonly_dismissed") or []) or st.get("custom_profile"):
+        return []
     name, use, link = READ_ONLY[plat]
     return [{"key": "read_only", "level": "info", "vals": {"name": name, "use": use}, "link": link,
              "dismiss": {"readonly_dismissed": list(st.get("readonly_dismissed") or []) + [plat]}}]
+
+
+def solaredge_storage(engine: Any, st: dict[str, Any]) -> list[dict[str, Any]]:
+    """SolarEdge Modbus Multi makes its battery controls only when "Storage Control" is turned on in its options - off by
+    default, so homes with it showed up as "no profile" (#50). One line that says where, with a button to the options."""
+    ctl = getattr(engine.ov, "controller", None)
+    reg = getattr(ctl, "_ent_reg", None) or {}
+    soc = engine.ov.role("battery_soc")
+    if (reg.get(soc or "") or {}).get("platform") != "solaredge_modbus_multi" or "solaredge_storage" in (st.get("readonly_dismissed") or []):
+        return []
+    if ctl and ctl.profile_key("battery"):
+        return []
+    return [{"key": "solaredge_storage", "level": "info", "vals": {},
+             "link": "https://my.home-assistant.io/redirect/integration/?domain=solaredge_modbus_multi",
+             "dismiss": {"readonly_dismissed": list(st.get("readonly_dismissed") or []) + ["solaredge_storage"]}}]
 
 
 # AlphaESS' integration only changes a period that exists, on the weekdays it already runs: one made in its app fixes it.

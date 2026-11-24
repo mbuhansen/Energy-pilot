@@ -2,6 +2,49 @@
 
 Newest first. Each version lists what changed since the one before.
 
+## 0.107.2 – 2026-11-24
+
+- A profile chosen by hand that finds none of its controls, while another profile fits, is replaced by the one that fits (Fox ESS through Modbus with "Fox ESS (cloud)" chosen found no controls). The choice in Settings shows it, and the change log says Energy Pilot changed it
+
+## 0.107.1 – 2026-11-24
+
+- SolaX read through its own integration and controlled through SolaX Modbus (two devices): the SolaX Modbus controls are now found, instead of "7 controls missing" and a self-test that found no controls
+
+## 0.107.0 – 2026-11-23
+
+New brands:
+- SolaX Gen2/Gen3 and Growatt through SolaX Modbus - picked by their own controls, Gen4 and later keep their profile
+- Off-grid inverters through ESPHome (Growatt SPF, SRNE, Voltronic/MPP): grid or battery first, and charging from the grid
+- Luxpower / EG4 through MonitorMySolar, Zendure SolarFlow/Hyper (Zendure-HA), EcoFlow PowerOcean (local Modbus), Marstek Venus (local API), and Voltronic/Axpert over MQTT (chosen by hand)
+- Kostal (its own integration) and the old Solarman integration only read: a button now opens the integration that can control them
+
+Fixes:
+- Homes with Powerwall, Solis, GoodWe (SEMS) and a few others lost all their checks and warnings - two lists had the same name in the code
+- Huawei: charging from the grid turns on "Charge from grid" (and its limits) while it charges, and puts your own values back after
+- SolaX through Home Assistant's own integration (read only): says to install SolaX Modbus instead of failing
+- Wallbox: starting a charge no longer pauses the charger ("pause/resume" is on while charging)
+- A known charger (Wallbox, Zaptec, Peblar, Hypervolt …) keeps its own way to start and stop, also with its switch chosen by hand
+- The car's self-test is skipped when the car isn't plugged in, instead of counting as a fault
+
+Learning together:
+- The shared house model trained every night on the homes that share their hours can now be used as a third forecast. It is sent out only when it clearly beats the homes' own forecasts on days it hasn't seen, is checked before use, gets no say in a home for three weeks, and loses it again by itself if it misses. Until there's enough data, nothing changes
+- The shared start values for the nightly tuning now reach Energy Pilot (they were left out)
+
+## 0.106.1 – 2026-11-23
+
+From the nightly self-test reports:
+- Anker SOLIX through Anker's own integration (Solarbank 4 E5000 Pro and others, local Modbus): its own profile - found and controlled by itself (#51)
+- Deye single-phase (SG0*LP1) through Solarman: holding the battery sets the limit 1 % above the level now - it kept discharging at the level itself (#53)
+- SolarEdge (Modbus Multi): holding stops discharging and lets the sun cover the house first; only the timer and the command are written again every 30 minutes, so the inverter's flash isn't worn; homes without battery control get a hint where to turn on Storage Control (#50)
+- FoxESS H3 Pro / H3 Smart: the self-test says when charging fails because of a known bug in the FoxESS integration (#1244, fixed there but not released), and a sale the sun covered is tried again another time instead of failing (#52)
+
+## 0.106.0 – 2026-11-23
+
+- The companion integration can now come from the Marketplace (HACS): repository Clahen86/energy-pilot-companion. Then it serves the dashboard card itself and the app never touches it - the first step to the app needing no access to Home Assistant's folder. Have it from the app? The front page shows how to move it, in three steps
+- The add-on only answers Home Assistant itself and its login (ingress): other containers on Home Assistant's network can't reach the panel
+- Dashboard card: a new **Status** view (what it does now and why, what comes next, battery, house and price - small, for a phone), the battery's level the next 24 hours in the Battery view, and the car folded to one line when it isn't plugged in
+- New entities: **Problem** (on when something needs a look), **Price level** (cheap / normal / dear) and **Battery health** (what it holds against its label)
+
 ## 0.105.0 – 2026-11-23
 
 Safety and honesty - after a careful review of the code by a user:
