@@ -1142,17 +1142,17 @@ const T_TH = {
 };
 const TH = T_TH[L] || T_TH.en;
 const T_HEAT = {  // a water heater: on, rests in the dear hours
-  da: { found: "Fandt din varmtvandsbeholder: {name}. Skal den holde pause i de dyre timer og varme på billig strøm og sol?", kind: "Varmtvand", heat: "tændt", pause: "pause i dyr time", pauseAt: "pause {x}", always: "Står tændt og slukkes kun i op til 4 dyre timer om dagen – så vandet altid er varmt. Tænder du den selv, bliver den tændt." },
-  en: { found: "Found your water heater: {name}. Let it rest in the dear hours and heat on cheap power and sun?", kind: "Hot water", heat: "on", pause: "resting in a dear hour", pauseAt: "rests {x}", always: "Stays on and is only switched off in up to 4 dear hours a day – so the water is always hot. Turn it on yourself and it stays on." },
-  de: { found: "Warmwasserspeicher gefunden: {name}. In teuren Stunden pausieren und mit günstigem Strom und Sonne heizen?", kind: "Warmwasser", heat: "an", pause: "Pause in teurer Stunde", pauseAt: "Pause {x}", always: "Bleibt an und wird nur in bis zu 4 teuren Stunden am Tag ausgeschaltet – das Wasser ist immer warm. Schaltest du ihn selbst ein, bleibt er an." },
-  nl: { found: "Je boiler gevonden: {name}. Laten pauzeren in dure uren en verwarmen met goedkope stroom en zon?", kind: "Warm water", heat: "aan", pause: "pauze in duur uur", pauseAt: "pauze {x}", always: "Blijft aan en gaat alleen uit in maximaal 4 dure uren per dag – zo is het water altijd warm. Zet je hem zelf aan, dan blijft hij aan." },
-  sv: { found: "Hittade din varmvattenberedare: {name}. Pausa de dyra timmarna och värma på billig el och sol?", kind: "Varmvatten", heat: "på", pause: "paus en dyr timme", pauseAt: "paus {x}", always: "Står på och stängs bara av upp till 4 dyra timmar om dagen – så vattnet alltid är varmt." },
-  nb: { found: "Fant varmtvannsberederen: {name}. Pause i de dyre timene og varme på billig strøm og sol?", kind: "Varmtvann", heat: "på", pause: "pause i dyr time", pauseAt: "pause {x}", always: "Står på og slås bare av i opptil 4 dyre timer om dagen – så vannet alltid er varmt." },
-  fr: { found: "Chauffe-eau trouvé : {name}. Le mettre en pause aux heures chères et chauffer au solaire et à bas prix ?", kind: "Eau chaude", heat: "en marche", pause: "pause heure chère", pauseAt: "pause {x}", always: "Reste allumé et n'est coupé que jusqu'à 4 heures chères par jour – l'eau reste toujours chaude." },
+  da: { found: "Fandt din varmtvandsbeholder: {name}. Skal den holde pause i de dyre timer og varme på billig strøm og sol?", kind: "Varmtvand", heat: "tændt", pause: "pause i dyr time", pauseAt: "pause {x}", always: "Står tændt og slukkes kun i op til 4 dyre timer om dagen – så vandet altid er varmt. Tænder du den selv, bliver den tændt. Har den en temperatur i Home Assistant, varmes den 10 °C ekstra, når solen ellers ville blive solgt billigt.", sunBoost: "varmer ekstra på solen" },
+  en: { found: "Found your water heater: {name}. Let it rest in the dear hours and heat on cheap power and sun?", kind: "Hot water", heat: "on", pause: "resting in a dear hour", pauseAt: "rests {x}", always: "Stays on and is only switched off in up to 4 dear hours a day – so the water is always hot. Turn it on yourself and it stays on. With a temperature of its own in Home Assistant, it heats 10 °C extra when the sun would otherwise be sold cheaply.", sunBoost: "heating extra on the sun" },
+  de: { found: "Warmwasserspeicher gefunden: {name}. In teuren Stunden pausieren und mit günstigem Strom und Sonne heizen?", kind: "Warmwasser", heat: "an", pause: "Pause in teurer Stunde", pauseAt: "Pause {x}", always: "Bleibt an und wird nur in bis zu 4 teuren Stunden am Tag ausgeschaltet – das Wasser ist immer warm. Schaltest du ihn selbst ein, bleibt er an. Hat er eine eigene Temperatur in Home Assistant, heizt er 10 °C mehr, wenn die Sonne sonst billig verkauft würde.", sunBoost: "heizt extra mit Sonne" },
+  nl: { found: "Je boiler gevonden: {name}. Laten pauzeren in dure uren en verwarmen met goedkope stroom en zon?", kind: "Warm water", heat: "aan", pause: "pauze in duur uur", pauseAt: "pauze {x}", always: "Blijft aan en gaat alleen uit in maximaal 4 dure uren per dag – zo is het water altijd warm. Zet je hem zelf aan, dan blijft hij aan. Heeft hij een eigen temperatuur in Home Assistant, dan verwarmt hij 10 °C extra als de zon anders goedkoop verkocht zou worden.", sunBoost: "verwarmt extra op de zon" },
+  sv: { found: "Hittade din varmvattenberedare: {name}. Pausa de dyra timmarna och värma på billig el och sol?", kind: "Varmvatten", heat: "på", pause: "paus en dyr timme", pauseAt: "paus {x}", always: "Står på och stängs bara av upp till 4 dyra timmar om dagen – så vattnet alltid är varmt. Har den en egen temperatur i Home Assistant värms den 10 °C extra när solen annars skulle säljas billigt.", sunBoost: "värmer extra på solen" },
+  nb: { found: "Fant varmtvannsberederen: {name}. Pause i de dyre timene og varme på billig strøm og sol?", kind: "Varmtvann", heat: "på", pause: "pause i dyr time", pauseAt: "pause {x}", always: "Står på og slås bare av i opptil 4 dyre timer om dagen – så vannet alltid er varmt. Har den en egen temperatur i Home Assistant, varmes den 10 °C ekstra når solen ellers ville blitt solgt billig.", sunBoost: "varmer ekstra på solen" },
+  fr: { found: "Chauffe-eau trouvé : {name}. Le mettre en pause aux heures chères et chauffer au solaire et à bas prix ?", kind: "Eau chaude", heat: "en marche", pause: "pause heure chère", pauseAt: "pause {x}", always: "Reste allumé et n'est coupé que jusqu'à 4 heures chères par jour – l'eau reste toujours chaude. S’il a sa propre température dans Home Assistant, il chauffe 10 °C de plus quand le soleil serait sinon vendu à bas prix.", sunBoost: "chauffe en plus au soleil" },
 };
 const TH_H = T_HEAT[L] || T_HEAT.en;
 T.chk.heater_found = TH_H.found;
-TH.kinds.heater = TH_H.kind; TH.st.heat = TH_H.heat; TH.st.pause = TH_H.pause;
+TH.kinds.heater = TH_H.kind; TH.st.heat = TH_H.heat; TH.st.pause = TH_H.pause; TH.st.sun_boost = TH_H.sunBoost;
 T.chk.thing_found = TH.found;
 const thAll = new Set();  // pick lists shown in full
 let thOpen = (() => { try { return localStorage.getItem("ep_things_open") === "1"; } catch { return false; } })();
@@ -1507,7 +1507,7 @@ function moveCard() {
   const repo = "https://github.com/Clahen86/energy-pilot-companion";
   return `<div class="card fade"><div class="eyebrow"><span>${t.t}</span></div><p style="margin:4px 0 8px">${t.b}</p>
     <ol style="margin:0 0 10px 18px;padding:0">${t.s.map((x) => `<li>${x}</li>`).join("")}</ol>
-    <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px"><code style="flex:1;overflow-wrap:anywhere">${repo}</code><button class="ghostbtn" data-movecopy="${repo}">${t.copy}</button></div>
+    <code style="display:block;overflow-wrap:anywhere;user-select:all">${repo}</code><button class="ghostbtn" style="margin-top:8px" data-movecopy="${repo}">${t.copy}</button>
     <button class="ghostbtn" data-movelater>${t.later}</button></div>`;
 }
 function home() {
@@ -1752,6 +1752,7 @@ function carCard(ev, f) {
   // the settings, in clean rows; "charge now" as the big button
   const modes = T.y?.carModes || { cheapest: "Cheapest", solar: "Sun only" }, mode = settings?.settings?.ev_mode || data.settings?.ev_mode || "cheapest";
   const rows = [
+    carPick("car", ev.car, "evrow"),
     `<div class="evrow"><div class="t"><b>${esc(T.y?.carMode || "")}</b></div><div class="seg mini evseg">${["cheapest", "solar"].map((m) => `<button class="${mode === m ? "on" : ""}" data-evmode="${m}">${esc(modes[m])}</button>`).join("")}</div></div>`,
     ev.ready != null ? `<div class="evrow"><div class="t"><b>${T.readyAt}</b><span>${T.xChargedBy}</span></div><input type="time" class="evtime rtn" data-ev="ready" value="${esc(String(ev.ready).slice(0, 5))}"></div>` : "",
     ev.soc_known ? evSocHtml(ev, true) : "",
@@ -1866,6 +1867,9 @@ const T_CURVE = {
   da: { title: "Batteriets ladekurve", hint: "Hvor hurtigt det lader ved hvert niveau – lært af dit eget batteri", shared: "Lært af batterier som dit, indtil dit eget er lært", warm: "Varmt", cold: "Koldt (under 5 °C)", cool: "Køligt (5–15 °C)", now: "Batteriet er {t} °C nu", level: "Batteriniveau", speed: "Ladefart" },
   en: { title: "The battery's charging curve", hint: "How fast it charges at each level – learned from your own battery", shared: "Learned from batteries like yours until your own is learned", warm: "Warm", cold: "Cold (below 5 °C)", cool: "Cool (5–15 °C)", now: "The battery is {t} °C now", level: "Battery level", speed: "Charging speed" },
   de: { title: "Ladekurve der Batterie", hint: "Wie schnell sie bei jedem Stand lädt – von deiner eigenen Batterie gelernt", shared: "Von Batterien wie deiner gelernt, bis deine eigene gelernt ist", warm: "Warm", cold: "Kalt (unter 5 °C)", cool: "Kühl (5–15 °C)", now: "Die Batterie hat jetzt {t} °C", level: "Ladestand", speed: "Ladeleistung" },
+  fr: { title: "Courbe de charge de la batterie", hint: "La vitesse de charge à chaque niveau – apprise de votre propre batterie", shared: "Apprise de batteries comme la vôtre en attendant la vôtre", warm: "Chaud", cold: "Froid (sous 5 °C)", cool: "Frais (5–15 °C)", now: "La batterie est à {t} °C", level: "Niveau de la batterie", speed: "Vitesse de charge" },
+  sv: { title: "Batteriets laddkurva", hint: "Hur snabbt det laddar vid varje nivå – lärt av ditt eget batteri", shared: "Lärt av batterier som ditt tills ditt eget är lärt", warm: "Varmt", cold: "Kallt (under 5 °C)", cool: "Svalt (5–15 °C)", now: "Batteriet är {t} °C nu", level: "Batterinivå", speed: "Laddhastighet" },
+  nb: { title: "Batteriets ladekurve", hint: "Hvor raskt det lader ved hvert nivå – lært av ditt eget batteri", shared: "Lært av batterier som ditt til ditt eget er lært", warm: "Varmt", cold: "Kaldt (under 5 °C)", cool: "Kjølig (5–15 °C)", now: "Batteriet er {t} °C nå", level: "Batterinivå", speed: "Ladehastighet" },
   nl: { title: "Laadcurve van de batterij", hint: "Hoe snel hij laadt bij elk niveau – geleerd van je eigen batterij", shared: "Geleerd van batterijen zoals de jouwe tot de jouwe geleerd is", warm: "Warm", cold: "Koud (onder 5 °C)", cool: "Koel (5–15 °C)", now: "De batterij is nu {t} °C", level: "Batterijniveau", speed: "Laadsnelheid" },
 };
 // The learned curve as a small graph: full speed until the battery slows down near full, and lower when cold.
@@ -1881,7 +1885,8 @@ function curveCard(c) {
   const line = (mult, col, dash) => `<polyline points="${steps(mult)}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round" ${dash ? `stroke-dasharray="5 4"` : ""}/>`;
   const leg = (col, txt, dash) => `<span class="cleg"><i style="border-top:2.5px ${dash ? "dashed" : "solid"} ${col}"></i>${esc(txt)}</span>`;
   return `<div class="eyebrow" style="margin:16px 0 6px"><span>${k.title}</span></div>
-    <svg viewBox="0 0 300 118" width="100%" role="img" aria-label="${esc(k.title)}" style="display:block">
+    <svg viewBox="0 0 300 128" width="100%" role="img" aria-label="${esc(k.title)}" style="display:block">
+      <text x="38" y="9" font-size="9" fill="var(--muted)">${esc(k.speed)} ↑</text><text x="162" y="124" font-size="9" fill="var(--muted)" text-anchor="middle">${esc(k.level)} →</text>
       <line x1="34" y1="96" x2="290" y2="96" stroke="var(--faint)"/><line x1="34" y1="14" x2="34" y2="96" stroke="var(--faint)"/>
       ${[0, 50, 100].map((l) => `<text x="${X(l)}" y="110" font-size="9" fill="var(--muted)" text-anchor="${l === 100 ? "end" : l ? "middle" : "start"}">${l} %</text>`).join("")}
       ${[0, 50, 100].map((v) => `<text x="29" y="${Y(v / 100) + 3}" font-size="9" fill="var(--muted)" text-anchor="end">${v} %</text>`).join("")}
@@ -2619,25 +2624,77 @@ function chargerList(v, row) {
       ${row(c.power, "", pick(i, "power", "ev_power"))}
       ${row(c.plug, "", pick(i, "plug", "ev_plug"))}
       ${row(c.session, "", pick(i, "session", "ev_session"))}
+      ${row((T.roles || {}).ev_soc || "Car battery (%)", "", pick(i, "soc", "ev_soc"))}
+      ${x.soc ? row(T.y.size, "", `<span class="unitin"><input class="numin" type="number" inputmode="decimal" step="1" data-chgn="${i}:car_kwh" value="${x.car_kwh ?? ""}" placeholder="60"><i>kWh</i></span>`) : ""}
       ${row(T.y.charger, T.y.chargerH, `<span class="unitin"><input class="numin" type="number" inputmode="decimal" step="0.1" data-chgn="${i}:charger_kw" value="${x.charger_kw ?? ""}" placeholder="7.4"><i>kW</i></span>`)}
       ${row(T.sw.t, T.sw.h, swPick(`car${i + 2}`, x.switch || "", `data-chg="${i}:switch"`))}
       <button class="link" data-chgdel="${i}">${c.remove}</button></div>`).join("")}
     <button class="ghostbtn" data-chgadd>${c.add}</button>`;
 }
+const T_CARS = {
+  da: { t: "Biler", h: "Flere biler end ladere? Tilføj bilerne her. Laderen finder selv bilen ud fra bilens egen “sat i”-sensor, ellers er det samme bil som sidst – og du kan altid vælge på bilkortet.", n: "Bil {n}", name: "Navn", soc: "Bilens batteri (%)", plug: "Bilens “sat i”-sensor", size: "Batteriets størrelse", add: "+ Tilføj bil", remove: "Fjern bil", none: "Ingen (ikke i Home Assistant)", which: "Bil i laderen", auto: "fundet selv", hand: "valgt", seen: "Tager ca. {x} kW ({n} opladninger)", plugH: "Fra bilens egen integration. Er bilen ikke i Home Assistant, så vælg Ingen – laderen ved selv, at en bil er sat i." },
+  en: { t: "Cars", h: "More cars than chargers? Add the cars here. The charger finds the car by itself from the car's own “plugged in” sensor, else it is the same car as last time – and you can always pick on the car card.", n: "Car {n}", name: "Name", soc: "Car battery (%)", plug: "Car's “plugged in” sensor", size: "Battery size", add: "+ Add car", remove: "Remove car", none: "None (not in Home Assistant)", which: "Car in the charger", auto: "found", hand: "picked", seen: "Takes about {x} kW ({n} charges)", plugH: "From the car's own integration. Car not in Home Assistant? Pick None – the charger knows by itself that a car is in." },
+  de: { t: "Autos", h: "Mehr Autos als Ladepunkte? Füge die Autos hier hinzu. Der Lader erkennt das Auto selbst am eigenen „Eingesteckt“-Sensor des Autos, sonst ist es dasselbe Auto wie zuletzt – und du kannst es jederzeit auf der Autokarte wählen.", n: "Auto {n}", name: "Name", soc: "Autobatterie (%)", plug: "„Eingesteckt“-Sensor des Autos", size: "Batteriegröße", add: "+ Auto hinzufügen", remove: "Auto entfernen", none: "Keiner (nicht in Home Assistant)", which: "Auto am Lader", auto: "erkannt", hand: "gewählt", seen: "Nimmt etwa {x} kW ({n} Ladungen)", plugH: "Aus der eigenen Integration des Autos. Auto nicht in Home Assistant? Keiner wählen – der Lader weiß selbst, dass ein Auto dran ist." },
+  fr: { t: "Voitures", h: "Plus de voitures que de bornes ? Ajoutez les voitures ici. La borne reconnaît la voiture grâce à son propre capteur « branchée », sinon c’est la même que la dernière fois – et vous pouvez toujours choisir sur la carte voiture.", n: "Voiture {n}", name: "Nom", soc: "Batterie de la voiture (%)", plug: "Capteur « branchée » de la voiture", size: "Taille de la batterie", add: "+ Ajouter une voiture", remove: "Retirer la voiture", none: "Aucun (pas dans Home Assistant)", which: "Voiture à la borne", auto: "trouvée", hand: "choisie", seen: "Prend environ {x} kW ({n} charges)", plugH: "De l’intégration de la voiture. Voiture absente de Home Assistant ? Choisissez Aucun – la borne sait d’elle-même qu’une voiture est branchée." },
+  nl: { t: "Auto's", h: "Meer auto's dan laadpunten? Voeg de auto's hier toe. De lader herkent de auto zelf aan de eigen “ingeplugd”-sensor van de auto, anders is het dezelfde auto als vorige keer – en je kunt altijd kiezen op de autokaart.", n: "Auto {n}", name: "Naam", soc: "Accu van de auto (%)", plug: "“Ingeplugd”-sensor van de auto", size: "Accugrootte", add: "+ Auto toevoegen", remove: "Auto verwijderen", none: "Geen (niet in Home Assistant)", which: "Auto aan de lader", auto: "gevonden", hand: "gekozen", seen: "Neemt ongeveer {x} kW ({n} laadbeurten)", plugH: "Van de eigen integratie van de auto. Auto niet in Home Assistant? Kies Geen – de lader weet zelf dat er een auto aan hangt." },
+  sv: { t: "Bilar", h: "Fler bilar än laddare? Lägg till bilarna här. Laddaren hittar bilen själv via bilens egen ”inkopplad”-sensor, annars är det samma bil som förra gången – och du kan alltid välja på bilkortet.", n: "Bil {n}", name: "Namn", soc: "Bilens batteri (%)", plug: "Bilens ”inkopplad”-sensor", size: "Batteriets storlek", add: "+ Lägg till bil", remove: "Ta bort bil", none: "Ingen (inte i Home Assistant)", which: "Bil i laddaren", auto: "hittad", hand: "vald", seen: "Tar ca {x} kW ({n} laddningar)", plugH: "Från bilens egen integration. Är bilen inte i Home Assistant? Välj Ingen – laddaren vet själv att en bil är inkopplad." },
+  nb: { t: "Biler", h: "Flere biler enn ladere? Legg til bilene her. Laderen finner bilen selv via bilens egen «tilkoblet»-sensor, ellers er det samme bil som sist – og du kan alltid velge på bilkortet.", n: "Bil {n}", name: "Navn", soc: "Bilens batteri (%)", plug: "Bilens «tilkoblet»-sensor", size: "Batteriets størrelse", add: "+ Legg til bil", remove: "Fjern bil", none: "Ingen (ikke i Home Assistant)", which: "Bil i laderen", auto: "funnet", hand: "valgt", seen: "Tar ca. {x} kW ({n} ladinger)", plugH: "Fra bilens egen integrasjon. Er ikke bilen i Home Assistant? Velg Ingen – laderen vet selv at en bil er koblet til." },
+};
+/** More cars than chargers: the list of cars (carlist.py) - each with its level, its "plugged in" sensor and size. */
+function carList(v, row) {
+  const k = T_CARS[L] || T_CARS.en, list = v.cars || [];
+  const pick = (i, key, opts) => `<select data-car="${i}:${key}"><option value="">${esc(k.none)}</option>${opts.map((x) =>
+    `<option value="${esc(x.entity_id)}" ${list[i][key] === x.entity_id ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select>`;
+  return `<h4 class="bathead" style="margin-top:18px">${esc(k.t)}</h4><div class="muted" style="font-size:12px;margin-bottom:8px">${esc(k.h)}</div>
+    ${list.map((x, i) => `<div class="batbox"><h4 class="bathead">${esc(k.n.replace("{n}", i + 1))}${x.name ? ` · ${esc(x.name)}` : ""}</h4>
+      ${row(k.name, "", `<input class="pname" data-cart="${i}:name" value="${esc(x.name || "")}">`)}
+      ${row(k.soc, "", pick(i, "soc", settings.candidates.ev_soc || []))}
+      ${row(k.plug, k.plugH, pick(i, "plug", settings.car_plugs || []))}
+      ${row(k.size, carSeen(x, k), `<span class="unitin"><input class="numin" type="number" inputmode="decimal" step="1" data-carn="${i}:car_kwh" value="${x.car_kwh ?? ""}" placeholder="60"><i>kWh</i></span>`)}
+      <button class="link" data-cardel="${i}">${esc(k.remove)}</button></div>`).join("")}
+    <button class="ghostbtn" data-caradd>${esc(k.add)}</button>`;
+}
+/** What the car was seen taking (its charges where it was sure which car it was) - how it is told apart. */
+function carSeen(x, k) {
+  const v = (x.kw_seen || []).filter((n) => typeof n === "number").sort((a, b) => a - b);
+  if (!v.length) return "";
+  const m = v.length % 2 ? v[(v.length - 1) / 2] : (v[v.length / 2 - 1] + v[v.length / 2]) / 2;
+  return k.seen.replace("{x}", num(m, 1)).replace("{n}", v.length);
+}
+/** Which car is in a charger ("car", "car2" …): found by itself or picked - one tap to change it. */
+function carPick(part, cv, cls = "ctl") {
+  if (!cv?.choices?.length) return "";
+  const k = T_CARS[L] || T_CARS.en;
+  return `<div class="${cls}"><div class="t"><b>${esc(k.which)}</b><span>${esc(cv.manual ? k.hand : k.auto)}</span></div>
+    <select data-carin="${part}">${cv.choices.map((c, i) => `<option value="${esc(c.id)}" ${c.id === cv.id ? "selected" : ""}>${esc(c.name || k.n.replace("{n}", i + 1))}</option>`).join("")}</select></div>`;
+}
 function moreCars() {
   const list = data?.flow?.cars || [], plans = data?.engine?.cars || [], conf = data?.settings?.chargers || [], c = T.chg;
   return list.map((x, i) => {
-    const p = plans[i] || {}, cf = conf[i] || {}, charging = (x.power || 0) > 100;
+    const p = plans[i] || {}, cf = conf[i] || {}, cv = (data?.cars || [])[i] || {}, charging = (x.power || 0) > 100;
     const hrs = (p.hours || []).map((t) => clock(t)).filter((v, j, a) => a.indexOf(v) === j);
     return `<div class="card fade"><div class="eyebrow"><span>${esc(x.name || c.car + " " + (i + 2))}</span>${x.session_kwh != null ? `<span>${num(x.session_kwh, 1)} kWh ${T.session}</span>` : ""}</div>
     <div class="car"><span style="color:${charging ? "var(--car)" : "var(--faint)"}">${CAR_ART}</span>
       <div><div class="st">${charging ? `${T.charging} ${kw(x.power)}` : x.plug ? T.plugged : T.notPlugged}</div>
       <div class="muted">${x.plug ? (hrs.length ? c.planned.replace("{x}", hrs.join(", ")) : c.none) : T.xPlugIn}</div></div></div>
+    ${carPick(`car${i + 2}`, cv.car)}
+    ${cv.soc_known ? carSocHtml(cv) : ""}
     <div class="ctl"><div class="t"><b>${T.chargeNow}</b><span>${T.xFullSpeed}</span></div><button class="toggle car ${cf.now ? "on" : ""}" data-chgnow="${i}"></button></div>
-    <details class="adv" data-adv="car${i + 2}" ${advOpen.has("car" + (i + 2)) ? "open" : ""}><summary>${T.readyAt} ${cf.ready ? esc(cf.ready) : ""} · ${T.atMost} ${cf.need_kwh ?? 20} kWh</summary>
+    <details class="adv" data-adv="car${i + 2}" ${advOpen.has("car" + (i + 2)) ? "open" : ""}><summary>${T.readyAt} ${cf.ready ? esc(cf.ready) : ""}${cv.soc_known ? "" : ` · ${T.atMost} ${cf.need_kwh ?? 20} kWh`}</summary>
     <div class="ctl"><div class="t"><b>${T.readyAt}</b><span>${T.xChargedBy}</span></div><input type="time" data-chgready="${i}" value="${esc(cf.ready || "")}"></div>
-    <div class="ctl"><div class="t"><b>${T.atMost}</b><span>${T.xPerCharge}</span></div><span class="unitin"><input class="numin" type="number" step="1" data-chgcap="${i}" value="${cf.need_kwh ?? ""}" placeholder="20"><i>kWh</i></span></div></details></div>`;
+    ${cv.soc_known ? "" : `<div class="ctl"><div class="t"><b>${T.atMost}</b><span>${T.xPerCharge}</span></div><span class="unitin"><input class="numin" type="number" step="1" data-chgcap="${i}" value="${cf.need_kwh ?? ""}" placeholder="20"><i>kWh</i></span></div>`}</details></div>`;
   }).join("");
+}
+/** An extra car's level, its target and the next trip - like the first car's (evSocHtml), for charger n. */
+function carSocHtml(cv) {
+  const E = T.evs, soc = cv.soc, tg = cv.target, n = cv.n;
+  const left = soc != null && soc < tg ? E.missing.replace("{x}", num((tg - soc) / 100 * cv.car_kwh / 0.9, 1)) : soc != null ? E.reached : "";
+  return `<div class="ctl evsoc"><div class="t"><b>${E.soc}</b><span>${esc(left)}</span></div><div class="evpct">${soc != null ? num(soc, 0) : "–"}<small>%</small></div></div>
+    <div class="evbar"><span style="width:${soc ?? 0}%"></span><i style="left:${tg}%"></i></div>
+    <div class="ctl"><div class="t"><b>${E.target}</b><span>${E.targetH}</span></div>
+      <div class="seg evt">${[60, 70, 80, 90, 100].map((v) => `<button data-cartarget="${n}:${v}" class="${!cv.trip && cv.everyday === v ? "on" : ""}">${v}</button>`).join("")}</div></div>
+    <div class="ctl"><div class="t"><b>${E.trip}</b><span>${E.tripH}</span></div><button class="toggle car ${cv.trip ? "on" : ""}" data-cartrip="${n}" aria-label="${E.trip}"></button></div>
+    <div class="muted" style="font-size:12px;margin-top:6px">${E.size.replace("{x}", num(cv.car_kwh, 0))}</div>`;
 }
 /** The extra battery's own inverter: found by itself (with what is missing), or picked. */
 function batControl(x, i) {
@@ -2730,7 +2787,7 @@ function styleView() {
       ${quietRow("car")}
       ${row(y.evInHouse, settings.ev_detected == null ? y.evInHouseUnknown : settings.ev_detected ? y.evInHouseYes : y.evInHouseNo,
         `<div class="seg mini">${[["auto", null], ["yes", true], ["no", false]].map(([k, val]) => `<button class="${(v.ev_in_house ?? null) === val ? "on" : ""}" data-evhouse="${k}">${y.evHouse[k]}</button>`).join("")}</div>`)}`)}
-      ${chargerList(v, row)}` : fromCharger(row, "main"))}
+      ${chargerList(v, row)}${carList(v, row)}` : fromCharger(row, "main"))}
     ${thingsSection(v, row)}
     ${settings.roles.pv_power ? section("bolt", (T_PANEL[L] || T_PANEL.en).t, (T_PANEL[L] || T_PANEL.en).h, panelsBody(), "panels") : ""}
     ${section("bolt", y.secPrice, y.secPriceH, `${row((T_TAR[L] || T_TAR.en).show, (T_TAR[L] || T_TAR.en).showH, tog("tariff_show", true))}${tarChoices && tarChoices.length ? row((T_TAR[L] || T_TAR.en).yours, (T_TAR[L] || T_TAR.en).yoursH,
@@ -2788,14 +2845,24 @@ function customEditor(v) {
     return vals.length ? `<div class="ochips">${vals.map((o) => `<button class="ochip ${String(st.value) === String(o) ? "on" : ""}" data-copt="${intent}:${i}" data-v="${esc(o)}">${esc(o)}</button>`).join("")}</div>` : "";
   };
   return `<div class="tou"><datalist id="ctl-ents">${ents.map((e) => `<option value="${e}">`).join("")}</datalist>
-    ${["normal", "hold", "charge"].map((intent) => `<div class="group"><h4>${c.intents[intent]}</h4>
+    ${["normal", "hold", "charge", "export"].map((intent) => `<div class="group"><h4>${c.intents[intent] || (T_SCRIPT[L] || T_SCRIPT.en).export}</h4>
     ${(prof[intent] || []).map((st, i) => {
       return `<div class="period"><input class="pname" list="ctl-ents" data-cent="${intent}:${i}" value="${esc(st.entity || "")}" placeholder="${c.pick}" autocomplete="off">
-        ${st.entity && !st.entity.startsWith("switch.") ? `<input class="pname" data-cval="${intent}:${i}" value="${esc(st.value ?? "")}" placeholder="${c.valueH}">` : ""}
+        ${st.entity && !/^(switch|script|button)\./.test(st.entity) ? `<input class="pname" data-cval="${intent}:${i}" value="${esc(st.value ?? "")}" placeholder="${c.valueH}">` : ""}
         <button class="x" data-cdel="${intent}:${i}">✕</button></div>${st.entity ? chips(intent, i, st) : ""}`;
     }).join("")}<button class="ghostbtn" data-cadd="${intent}">+ ${c.addStep}</button></div>`).join("")}
-    <div class="muted" style="margin-top:8px">${c.customHint}</div></div>`;
+    <div class="muted" style="margin-top:8px">${c.customHint}</div>
+    <div class="muted" style="margin-top:6px">${(T_SCRIPT[L] || T_SCRIPT.en).hint}</div></div>`;
 }
+const T_SCRIPT = {
+  da: { export: "Sælg fra batteriet (valgfri)", hint: "Har din inverter ingen profil? Vælg dit eget script (script.…) til hvert trin. Det køres med variablerne target, soc, min_soc, power_w, power_kw og export_w." },
+  en: { export: "Sell from the battery (optional)", hint: "No profile for your inverter? Pick your own script (script.…) for each step. It runs with the variables target, soc, min_soc, power_w, power_kw and export_w." },
+  de: { export: "Aus der Batterie verkaufen (optional)", hint: "Kein Profil für deinen Wechselrichter? Wähle für jeden Schritt dein eigenes Skript (script.…). Es läuft mit den Variablen target, soc, min_soc, power_w, power_kw und export_w." },
+  fr: { export: "Vendre depuis la batterie (facultatif)", hint: "Pas de profil pour votre onduleur ? Choisissez votre propre script (script.…) pour chaque étape. Il reçoit les variables target, soc, min_soc, power_w, power_kw et export_w." },
+  nl: { export: "Verkopen uit de accu (optioneel)", hint: "Geen profiel voor je omvormer? Kies je eigen script (script.…) voor elke stap. Het draait met de variabelen target, soc, min_soc, power_w, power_kw en export_w." },
+  sv: { export: "Sälj från batteriet (valfritt)", hint: "Ingen profil för din växelriktare? Välj ditt eget skript (script.…) för varje steg. Det körs med variablerna target, soc, min_soc, power_w, power_kw och export_w." },
+  nb: { export: "Selg fra batteriet (valgfritt)", hint: "Ingen profil for vekselretteren din? Velg ditt eget skript (script.…) for hvert trinn. Det kjøres med variablene target, soc, min_soc, power_w, power_kw og export_w." },
+};
 function touEditor(v) {
   const y = T.y, plan = v.tou || { default: 0, periods: [] };
   const days = (p, i) => `<select data-tou-days="${i}">${["all", "weekdays", "weekends"].map((d) => `<option value="${d}" ${p.days === d ? "selected" : ""}>${y.days[d]}</option>`).join("")}</select>`;
@@ -3007,7 +3074,7 @@ function wire() {
   document.querySelectorAll("[data-cadd]").forEach((b) => b.onclick = async () => { const c = cust(); (c[b.dataset.cadd] ||= []).push({ entity: "", kind: "select", value: "" }); await api("/api/settings", { custom_profile: c }); settings = await api("/api/settings"); render(); });
   document.querySelectorAll("[data-cent],[data-cval]").forEach((el) => el.onchange = async () => {
     const c = cust(), [intent, i] = (el.dataset.cent || el.dataset.cval).split(":"), step = c[intent][Number(i)];
-    if (el.dataset.cent) { step.entity = el.value; step.kind = el.value.startsWith("select.") ? "select" : el.value.startsWith("number.") ? "number" : "on"; }
+    if (el.dataset.cent) { step.entity = el.value; step.kind = el.value.startsWith("select.") ? "select" : el.value.startsWith("number.") ? "number" : el.value.startsWith("script.") ? "script" : el.value.startsWith("button.") ? "press" : "on"; }
     else step.value = el.value;
     await api("/api/settings", { custom_profile: c }); settings = await api("/api/settings"); control = await api("/api/control"); render();
   });
@@ -3098,6 +3165,17 @@ function wire() {
   const chgs = () => JSON.parse(JSON.stringify((settings?.settings || data.settings).chargers || []));
   const saveChgs = async (l) => { await api("/api/settings", { chargers: l }); settings = await api("/api/settings"); await load(); render(); };
   $("[data-chgadd]")?.addEventListener("click", () => saveChgs([...chgs(), { name: "", power: "", plug: "" }]));
+  // The list of cars (more cars than chargers) and which car is in a charger.
+  const carsL = () => JSON.parse(JSON.stringify((settings?.settings || data.settings).cars || []));
+  const saveCars = async (l) => { await api("/api/settings", { cars: l }); settings = await api("/api/settings"); await load(); render(); };
+  $("[data-caradd]")?.addEventListener("click", () => saveCars([...carsL(), { name: "" }]));
+  document.querySelectorAll("[data-cardel]").forEach((x) => x.onclick = () => { const l = carsL(); l.splice(Number(x.dataset.cardel), 1); saveCars(l); });
+  document.querySelectorAll("[data-car],[data-carn],[data-cart]").forEach((el) => el.onchange = () => {
+    const [i, key] = (el.dataset.car || el.dataset.carn || el.dataset.cart).split(":"), l = carsL();
+    l[Number(i)][key] = el.dataset.carn ? (el.value === "" ? null : Number(el.value.replace(",", "."))) : el.value || null;
+    saveCars(l);
+  });
+  document.querySelectorAll("[data-carin]").forEach((el) => el.onchange = async () => { await api("/api/car_in", { part: el.dataset.carin, car: el.value }); await load(); render(); });
   // A charger picked once: its own sensors filled in (the main car's roles, or that charger's).
   document.querySelectorAll("[data-chgfrom]").forEach((sel) => sel.onchange = async () => {
     const tgt = sel.dataset.chgfrom;
@@ -3133,9 +3211,13 @@ function wire() {
     l[Number(i)][key] = el.dataset.chgn ? (el.value === "" ? null : Number(el.value.replace(",", "."))) : el.value || null;
     saveChgs(l);
   });
-  document.querySelectorAll("[data-chgnow]").forEach((b) => b.onclick = () => { const l = chgs(), i = Number(b.dataset.chgnow); l[i].now = !l[i].now; saveChgs(l); });
-  document.querySelectorAll("[data-chgready]").forEach((el) => el.onchange = () => { const l = chgs(); l[Number(el.dataset.chgready)].ready = el.value || null; saveChgs(l); });
-  document.querySelectorAll("[data-chgcap]").forEach((el) => el.onchange = () => { const l = chgs(); l[Number(el.dataset.chgcap)].need_kwh = el.value === "" ? null : Number(el.value); saveChgs(l); });
+  // An extra car's buttons: through /api/charger ("n" = its charger's number), so "charge now" acts at once.
+  const carSet = async (n, body) => { await api("/api/charger", { n, ...body }); settings = await api("/api/settings"); await load(); render(); };
+  document.querySelectorAll("[data-chgnow]").forEach((b) => b.onclick = () => { const i = Number(b.dataset.chgnow); carSet(i + 2, { manual: !b.classList.contains("on") }); });
+  document.querySelectorAll("[data-chgready]").forEach((el) => el.onchange = () => carSet(Number(el.dataset.chgready) + 2, { ready: el.value || null }));
+  document.querySelectorAll("[data-chgcap]").forEach((el) => el.onchange = () => { if (el.value !== "") carSet(Number(el.dataset.chgcap) + 2, { cap: Number(el.value) }); });
+  document.querySelectorAll("[data-cartarget]").forEach((b) => b.onclick = () => { const [n, v] = b.dataset.cartarget.split(":").map(Number); carSet(n, { target: v }); });
+  document.querySelectorAll("[data-cartrip]").forEach((b) => b.onclick = () => carSet(Number(b.dataset.cartrip), { trip: !b.classList.contains("on") }));
   document.querySelectorAll("[data-fix]").forEach((b) => b.onclick = async () => { await api("/api/settings", JSON.parse(b.dataset.fix)); settings = await api("/api/settings"); await load(); render(); });
   document.querySelectorAll("[data-goto]").forEach((b) => b.onclick = async () => {
     const g = b.dataset.goto; if (["battery", "car", "grid"].includes(g)) advOpen.add(g);

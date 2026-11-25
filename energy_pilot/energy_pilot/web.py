@@ -239,7 +239,29 @@ def make_app(runner: Runner, overview: Overview, password: str | None = None) ->
                                   "battery_type_found": overview.engine.battery_type() if overview.engine else None,
                                   "roles_all": {r: overview.role_all(r) for r in ("pv_power", "solar_today", "solar_tomorrow")},
                                   "charger_switches": switches(), "thing_options": thing_options(), "charger_devices": charger_devices(),
+                                  "car_plugs": car_plugs(),
                                   "curtail": overview.curtail.status() if getattr(overview, "curtail", None) else None})
+
+    def car_plugs() -> list:
+        """For Settings > Car > Cars: the car's own "plugged in" (or charging state) sensors - only from a car's own
+        integration (Tesla, VW, Kia …), never the charger's: the charger already tells that a car is in it."""
+        import re as _re
+
+        from .chargers import extras
+        from .detect import CAR_PLATFORMS
+
+        car_platforms = set(CAR_PLATFORMS) - {"ocpp", "evcc_intg"}  # chargers, not cars
+        words = _re.compile(r"plug|cable|kabel|connect|charging_state|charge_state|charger_state|charging_status|ladekabel|stik")
+        reg = getattr(overview.controller, "_ent_reg", None) or {}
+        chargers_own = {overview.role("ev_plug")} | {c.get("plug") for c in extras(overview.settings)}
+        out = []
+        for e, s in runner.ha.states.items():
+            if not (e.startswith("binary_sensor.") or e.startswith("sensor.")) or e in chargers_own or not words.search(e):
+                continue
+            if (reg.get(e) or {}).get("platform") not in car_platforms:
+                continue
+            out.append({"entity_id": e, "name": str((s.get("attributes") or {}).get("friendly_name") or e)})
+        return sorted(out, key=lambda x: (not x["entity_id"].startswith("binary_sensor."), x["name"].lower()))
 
     def charger_devices() -> list:
         """For Settings > Car: the chargers found, each with its power, plug, charged-energy and car-level sensors."""
@@ -275,6 +297,10 @@ def make_app(runner: Runner, overview: Overview, password: str | None = None) ->
 
     async def save_settings(req: web.Request) -> web.Response:
         body = await req.json()
+        if isinstance(body.get("cars"), list):  # a new car gets its id here
+            from .carlist import new_id
+
+            body["cars"] = [{**c, "id": c.get("id") or new_id()} for c in body["cars"] if isinstance(c, dict)]
         ua = req.headers.get("User-Agent") or ""
         overview.save(body, "home_assistant" if "HomeAssistant" in ua or "aiohttp" in ua.lower() else "app")
         if overview.controller and ("ev_switch" in body or "chargers" in body or "things" in body or "things_dismissed" in body
@@ -306,6 +332,26 @@ def make_app(runner: Runner, overview: Overview, password: str | None = None) ->
         """The car buttons: they change the same helpers your dashboard does - a person's choice, so also in shadow."""
         body = await req.json()
         ents = (overview.ev() or {}).get("entities") or {}
+        from . import carlist
+
+        car = carlist.car_in(overview.settings, "car")
+        if car is not None:  # more cars than chargers: ready, at most, target and trip belong to the car in it
+            mine = {}
+            if "ready" in body:
+                mine["ready"] = str(body.pop("ready"))[:5] or None
+            if "cap" in body:
+                mine["need_kwh"] = max(0.0, min(200.0, float(body.pop("cap"))))
+            if "target" in body:
+                mine.update(target=max(20, min(100, int(body.pop("target")))), trip=False)
+            if "trip" in body:
+                mine["trip"] = bool(body.pop("trip"))
+            if mine:
+                overview.save(carlist.update_car(overview.settings, car["id"], mine))
+                if overview.engine:
+                    try:
+                        overview.engine.run()
+                    except Exception:  # noqa: BLE001
+                        pass
         if "manual" in body:
             if ents.get("ev_manual"):
                 await runner.ha.call_service("input_boolean", "turn_on" if body["manual"] else "turn_off", {"entity_id": ents["ev_manual"]})
@@ -337,6 +383,83 @@ def make_app(runner: Runner, overview: Overview, password: str | None = None) ->
         if "sun_target" in body:  # 0/None: the same as the grid target
             v = body["sun_target"]
             overview.save({"ev_sun_target": max(20, min(100, int(v))) if v else None})
+        return web.json_response({"ok": True})
+
+    async def charger(req: web.Request) -> web.Response:
+        """An extra car's buttons (charger 2, 3 …: "n" is its number): charge now, ready at, at most (kWh), its target
+        (%), the next trip and cheapest/solar - from the app, the dashboard card and the companion."""
+        from . import chargers as _chargers
+
+        body = await req.json()
+        conf = list(overview.settings.get("chargers") or [])
+        extras = _chargers.extras(overview.settings)
+        try:
+            c = extras[int(body["n"]) - 2]
+        except (KeyError, ValueError, TypeError, IndexError):
+            return web.json_response({"error": "no such car"}, status=400)
+        c = dict(c)
+        from . import carlist
+
+        car = carlist.car_in(overview.settings, f"car{int(body['n'])}")
+        if car is not None:  # the car's own settings go with the car, not the charger
+            mine = {}
+            if "ready" in body:
+                mine["ready"] = str(body.pop("ready"))[:5] if body.get("ready") else None
+            if "cap" in body:
+                mine["need_kwh"] = max(0.0, min(200.0, float(body.pop("cap"))))
+            if "target" in body:
+                mine.update(target=max(20, min(100, int(body.pop("target")))), trip=False)
+            if "trip" in body:
+                mine["trip"] = bool(body.pop("trip"))
+            if mine:
+                overview.save(carlist.update_car(overview.settings, car["id"], mine))
+        if "manual" in body:
+            c["now"] = bool(body["manual"])
+        if "ready" in body:
+            c["ready"] = str(body["ready"])[:5] if body["ready"] else None
+        if "cap" in body:
+            c["need_kwh"] = max(0.0, min(200.0, float(body["cap"])))
+        if "target" in body:
+            c["target"] = max(20, min(100, int(body["target"])))
+            c["trip"] = False
+        if "trip" in body:
+            c["trip"] = bool(body["trip"])
+        if body.get("mode") in ("cheapest", "solar"):
+            c["mode"] = body["mode"]
+        conf[conf.index(extras[int(body["n"]) - 2])] = c
+        overview.save({"chargers": conf})
+        if overview.engine:
+            try:
+                overview.engine.run()
+            except Exception:  # noqa: BLE001 - the next round plans it then
+                pass
+        if "manual" in body and overview.controller:  # "charge now" acts at once, not at the next round
+            try:
+                await overview.controller.tick((f"car{int(body['n'])}",))
+            except Exception:  # noqa: BLE001
+                logging.getLogger("energy_pilot.control").warning("Charge now: could not tell charger %s at once", body["n"], exc_info=True)
+        return web.json_response({"ok": True})
+
+    async def car_in(req: web.Request) -> web.Response:
+        """Which car is in a charger, picked by hand ("part": car, car2 …; "car": the car's id or its name). It
+        stays for this charge; unplugged, the next car is found by itself again."""
+        from . import carlist
+
+        body = await req.json()
+        part, want = str(body.get("part") or "car"), str(body.get("car") or "")
+        lst = carlist.cars(overview.settings)
+        car = next((c for c in lst if c["id"] == want), None) or next((c for c in lst if (c.get("name") or "") == want), None)
+        from .chargers import extras
+
+        parts = ["car"] + [f"car{i + 2}" for i in range(len(extras(overview.settings)))]
+        if car is None or part not in parts:
+            return web.json_response({"error": "no such car or charger"}, status=400)
+        overview.save(carlist.pick(overview.settings, part, car["id"]))
+        if overview.engine:
+            try:
+                overview.engine.run()
+            except Exception:  # noqa: BLE001
+                pass
         return web.json_response({"ok": True})
 
     async def index(_req: web.Request) -> web.FileResponse:
@@ -634,6 +757,8 @@ def make_app(runner: Runner, overview: Overview, password: str | None = None) ->
     app.router.add_post("/api/control", control_mode)
     app.router.add_post("/api/control/release", control_release)
     app.router.add_post("/api/ev", ev)
+    app.router.add_post("/api/charger", charger)
+    app.router.add_post("/api/car_in", car_in)
     app.router.add_post("/api/things/arm", things_arm)
     app.router.add_post("/api/mode", mode)
     app.router.add_post("/api/shadow_all", stop_all)

@@ -169,7 +169,9 @@ def run(engine: Any, hours: list, b: Any, plan: Any, end_value: float) -> list[d
 
     # 3c. Victron's persistent ESS limit "Max inverter power" (/Settings/CGwacs/MaxDischargePower) at 0: the battery can't
     #     discharge whatever Energy Pilot allows through the Hub4 override. Told, never changed.
-    if (e := victron_limit(getattr(getattr(engine.ov, "ha", None), "states", None) or {})):
+    ctl_ = getattr(engine.ov, "controller", None)
+    gx = bool(ctl_ and hasattr(ctl_, "profile_key") and ctl_.profile_key("battery") == "victron_ha")  # its hold is that very limit at 0 - on purpose
+    if not gx and (e := victron_limit(getattr(getattr(engine.ov, "ha", None), "states", None) or {})):
         out.append({"key": "victron_limit", "level": "warn", "vals": {"e": e}, "goto": "battery"})
 
     # 3b. Sell the sun instead of storing it - offered to those who had Energy Pilot before it came (new installs
@@ -266,8 +268,9 @@ READ_ONLY = {
     # Control (its own profile here) charges and discharges it.
     "kostal_plenticore": ("Kostal", "Kostal Plenticore Battery Control",
                           "https://my.home-assistant.io/redirect/hacs_repository/?owner=mbuhansen&repository=kostal_plenticore_battery_control&category=integration"),
-    # The old Solarman integration (StephanJoubert, same domain "solarman") only reads - davidrapan's controls a Deye.
-    "solarman_old": ("Deye", "Solarman (davidrapan)",
+    # The old Solarman integration (StephanJoubert, same domain "solarman") only reads - davidrapan's controls a Deye
+    # or a Sofar (ZCS Azzurro is a Sofar).
+    "solarman_old": ("Deye / Sofar", "Solarman (davidrapan)",
                      "https://my.home-assistant.io/redirect/hacs_repository/?owner=davidrapan&repository=ha-solarman&category=integration"),
 }
 
@@ -282,7 +285,7 @@ def read_only(engine: Any, st: dict[str, Any]) -> list[dict[str, Any]]:
     if plat == "solarman":
         # The same domain for both: the old one makes no controls (no programme SOC, no time of use) - say so, even if a
         # Deye profile was guessed from the model (its steps would find nothing)
-        mine = [e for e, r in reg.items() if (r or {}).get("platform") == "solarman" and re.match(r"(number|select)\..*(program_\d_soc|time_of_use)$", e)]
+        mine = [e for e, r in reg.items() if (r or {}).get("platform") == "solarman" and re.match(r"(number|select)\..*(program_\d_soc|time_of_use|storage_control_mode|passive_(minimum|maximum)_battery_power)$", e)]
         if mine:
             return []
         plat = "solarman_old"
@@ -374,6 +377,10 @@ def inverter_floor(engine: Any, b: Any) -> list[dict[str, Any]]:
     """The inverter stops discharging above the minimum Energy Pilot plans with: offer to use the inverter's level."""
     ctl = getattr(engine.ov, "controller", None)
     if ctl is None or b is None or ctl.mode("battery") != "control":
+        return []
+    if ((getattr(ctl, "last", None) or {}).get("battery") or {}).get("intent") in ("hold", "charge"):
+        # Energy Pilot itself raises such a level to hold (Luxpower's on-grid cut-off, as Predbat warns, GH#4013):
+        # offering it as the user's minimum would ratchet the minimum up and up
         return []
     floors = inverter_floors(engine.ov.ha.states, (getattr(ctl, "entities", None) or {}).get("battery") or [])
     if not floors:

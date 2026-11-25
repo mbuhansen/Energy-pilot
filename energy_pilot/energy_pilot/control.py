@@ -319,6 +319,12 @@ class Controller:
             # A known charger integration (Wallbox, Zaptec, Peblar …) keeps its own way even with its switch chosen by
             # hand - the generic way paused a Wallbox and lost Zaptec's services. Else the switch and a current control.
             plat = reg.get("platform") if reg.get("platform") in adapters.CHARGER_SERVICES else None
+            if plat is None and self.platforms.get(part) in adapters.CHARGER_SERVICES:
+                # The owner's own start/stop switch (a template, a script) beside a known charger (Easee): the
+                # charger keeps its own way - current, pause, resume - and the switch is used as well.
+                self.entities[part] = sorted(set(self.entities.get(part) or []) | {sw})
+                self.chosen[part] = sw
+                continue
             kinds = r"(number|select|switch|button)\." if plat else r"(number|select)\."
             own = [e["entity_id"] for e in entities if not e.get("disabled_by") and dev and e.get("device_id") == dev
                    and re.match(kinds, e["entity_id"])]
@@ -414,7 +420,8 @@ class Controller:
         key = self.profile_key(part)
         if key == "custom" and part == "battery":
             c = self.ov.settings.get("custom_profile") or {}
-            steps = {i: [(s["entity"], s["kind"], s.get("value")) for s in c.get(i, []) if s.get("entity")] for i in ("normal", "hold", "charge")}
+            steps = {i: [(s["entity"], s["kind"], s.get("value")) for s in c.get(i, []) if s.get("entity")] for i in ("normal", "hold", "charge", "export")}
+            steps = {i: v for i, v in steps.items() if v or i != "export"}
             return steps if any(steps.values()) else None
         p = adapters.PROFILES.get(key or "")
         return {i: p[i] for i in ("normal", "hold", "hold_sun", "charge", "export") if i in p} if p else None
@@ -572,7 +579,7 @@ class Controller:
                     net = max(0.0, (f.get("house") or 0.0) - (f.get("pv") or 0.0))
                     export_w = int(round(max(0.0, charge_kw * 1000 - net) / 100) * 100)
             out["battery"] = {"intent": intent, "ctx": {
-                "grid_charge": bool(bat.grid_charge), "min_soc": round(bat.min_soc), "soc": round(max(f["soc"] or bat.min_soc, bat.min_soc)), "target": round(b.get("target") or step["soc"]),
+                "grid_charge": bool(bat.grid_charge), "min_soc": round(bat.min_soc), "soc": round(max(f["soc"] or bat.min_soc, bat.min_soc)), "soc_floor": int(max(f["soc"] or bat.min_soc, bat.min_soc)), "target": round(b.get("target") or step["soc"]),
                 "rate": round(100 * charge_kw / bat.max_charge_kw), "power_w": round(charge_kw * 1000),
                 "max_power_w": round(bat.max_discharge_kw * 1000), "max_charge_w": round(bat.max_charge_kw * 1000),
                 "power_kw": round(charge_kw, 2), "max_charge_kw": round(bat.max_charge_kw, 2), "max_power_kw": round(bat.max_discharge_kw, 2), "export_w": export_w,
@@ -652,7 +659,7 @@ class Controller:
             own = packs[i]["soc"] if i < len(packs) and packs[i].get("soc") is not None else ctx["soc"]
             info = {"device": getattr(self, "battery_device", None) or "", "serial": getattr(self, "battery_serial", "") or ""} if i == 0 \
                 else self.bat_info.get(part) or {}
-            c = {**ctx, "soc": round(max(own, ctx.get("min_soc") or 0)), "power_w": round(ctx["power_w"] * share), "power_kw": round(ctx["power_kw"] * share, 2),
+            c = {**ctx, "soc": round(max(own, ctx.get("min_soc") or 0)), "soc_floor": int(max(own, ctx.get("min_soc") or 0)), "power_w": round(ctx["power_w"] * share), "power_kw": round(ctx["power_kw"] * share, 2),
                  "max_power_w": round(ctx["max_power_w"] * dshare), "max_power_kw": round(ctx["max_power_kw"] * dshare, 2),
                  "max_charge_w": round(ctx["max_charge_w"] * cshare), "max_charge_kw": round(ctx["max_charge_kw"] * cshare, 2),
                  "export_w": int(round(ctx.get("export_w", 0) * dshare / 50) * 50),
@@ -757,10 +764,10 @@ class Controller:
         if part.startswith("car") and part != "car":
             return self._phase_call(part, want) + self._clamp(adapters.charger_calls(
                 want["intent"], self.entities.get(part, []), self.platforms.get(part), want["ctx"]["current"],
-                self.car_devices.get(part), self.ha.states, switch=self.auto_switch(part)))
+                self.car_devices.get(part), self.ha.states, switch=self.auto_switch(part), chosen=self.chosen.get(part)))
         calls = self._clamp(adapters.charger_calls(
             want["intent"], self.entities["car"], self.platforms["car"], want["ctx"]["current"],
-            getattr(self, "car_device", None), self.ha.states, switch=self.auto_switch("car")))
+            getattr(self, "car_device", None), self.ha.states, switch=self.auto_switch("car"), chosen=self.chosen.get("car")))
         # The charger test's steps are "start"/"stop" (selftest.py): an option it - or 3 other installations with the
         # same charger - found works is used instead.
         return self._phase_call("car", want) + self._fixed("car", "start" if want["intent"] == "charge" else "stop", calls)
@@ -1307,7 +1314,7 @@ class Controller:
         # For "Chosen by you": every control in Home Assistant - the inverter's own first - not only the device
         # the battery level was found on (that could be the wrong one, e.g. a car).
         own = set(self.entities["battery"])
-        everything = [e for e in self.ha.states if e.split(".")[0] in ("select", "number", "switch", "button", "time")]
+        everything = [e for e in self.ha.states if e.split(".")[0] in ("select", "number", "switch", "button", "time", "script")]
         out["profile"]["all_controls"] = sorted(own) + sorted(e for e in everything if e not in own)
         return out
 

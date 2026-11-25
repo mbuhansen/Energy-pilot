@@ -128,7 +128,8 @@ Små batterier og maskiner på sol eller i de billigste timer – **efter** husb
 - **Lærer** hvor meget og hvor længe hver ting tager, og **finder dem selv** – aldrig telefoner, lys eller bilen.
 - Kun den sol, der ellers ville blive solgt, og altid inden for hovedsikringen.
 - **Varmtvandsbeholder** på en kontakt: findes af sig selv, står tændt og holder kun pause i op til 4 dyre timer om
-  dagen – vandet er altid varmt. Tænder du den selv, bliver den tændt.
+  dagen – vandet er altid varmt. Tænder du den selv, bliver den tændt. Har den en temperatur i Home Assistant, varmer
+  den også 10 °C ekstra på sol, der ellers ville blive solgt billigt – beholderen gemmer solen som varme.
 
 <p align="center"><img src="docs/things_da.png" width="640" alt="Kører billigt"></p>
 
@@ -182,18 +183,26 @@ To slags prognoser side om side, og den bedste bestemmer:
 - Et panel i sidepanelet på 7 sprog, lyst og mørkt – med det rigtige vejr, årstider og højtider i energibilledet.
 - **Dashboard-kort** til energiflow, batteri, bil og plan.
 - **Sensorer** til dine egne automationer: beslutningen nu, næste opladning af batteri og bil, næste salg, **billigste
-  time** (start opvaskeren der), hvad batteriet har sparet, og hvad strømmen i det kostede.
-- **Knapper og kontakter:** *Lad nu*, *Klar kl.* og *Batteri-/Bil-styring* (Skygge / Styrer / Fra).
+  time** (start opvaskeren der), hvad batteriet har sparet, og hvad strømmen i det kostede, **prisniveau** (billig /
+  normal / dyr), **batteriets sundhed** (hvad det rummer mod det, der står på det) og **Problem** (tændt når noget skal ses på).
+- **Knapper og kontakter:** *Lad nu*, *Klar kl.*, *Lad til*, *100 % til næste tur* og *Batteri-/Bil-styring*
+  (Skygge / Styrer / Fra) – og det samme for hver ekstra bil, plus *Bil i laderen* når du har flere biler end ladebokse.
 - **Et indstillingstjek**, der forklarer med almindelige ord, når en indstilling ødelægger planen – med et tryk til at rette den.
 
-<details>
-<summary><b>Mere – flere batterier og ladere, off-grid, effekttarif, særlige opsætninger</b></summary>
+### 🧩 Flere opsætninger – flere batterier og ladere, off-grid, effekttarif
 
+- **Anden produktion** – en lille vindmølle eller vandkraft: tæller med i energibalancen, bilens overskud og
+  besparelsen, men holdes ude af solprognosen.
 - **Flere husbatterier** – fx SolarEdge og Victron: planlægges som ét, styres hver gennem sin egen inverter og sættes
   til at styre hver for sig.
 - **Flere ladebokse** – hver bil har sin egen *lad nu*, *klar kl.* og *højst*, og tilsammen holdes de under hovedsikringen.
 
   ![To batterier og to ladebokse](docs/multi_da.png)
+- **Flere biler end ladebokse** – tilføj bilerne, hver med eget navn, størrelse, mål og klar-tid (en bil uden for Home
+  Assistant skal kun have navn og størrelse). Hver ladeboks finder selv bilen: ud fra bilens egen sensor, ellers ud fra
+  den effekt den lader med, når den kender bilerne, ellers samme bil som sidst. Gætter den forkert, vælger du med ét tryk.
+
+  ![To ladebokse, tre biler](docs/cars_da.png)
 
 - **Ingen husforbrug-sensor nødvendig** – den regner huset ud fra net, sol, batteri og bil.
 - **Enhver solprognose** – Solcast, Open-Meteo, Forecast.Solar … eller sin egen ud fra vejret og anlæggets historik.
@@ -203,7 +212,6 @@ To slags prognoser side om side, og den bedste bestemmer:
 - **Off-grid** – generatoren bliver "nettet": den starter, før batteriet når reserven, kører længe ad gangen og altid ved nødgrænsen.
 - **Din egen AppDaemon i skygge** – kører din nuværende opsætning uændret ved siden af og viser, hvor tit de er enige.
 
-</details>
 
 ## Dashboard-kort
 
@@ -224,12 +232,13 @@ Marketplace (HACS): [energy-pilot-companion](https://github.com/Clahen86/energy-
 
 ## Mærker
 
-Alt går gennem enhedens egen Home Assistant-integration.<br>
+Alt går gennem enhedens egen Home Assistant-integration. Ingen profil til din? Vælg selv dens kontroller – eller dine
+egne scripts – for hvert trin under Indstillinger → Styring.<br>
 ✅ kører i rigtig brug · 🧪 bygget ud fra integrationens egen kode, venter på en betatester med udstyret
 
 | | |
 |---|---|
-| **Inverter / batteri** | ✅ Growatt SPH (SPA) · ✅ Victron (ESS) · ✅ Deye (Solarman) · ✅ GoodWe (ET/EH/BT/BH) · ✅ Alpha ESS · ✅ SolaX (SolaX Modbus) · ✅ Deye (ESPHome) · ✅ EcoFlow PowerStream · ✅ Kostal (Modbus control) · 🧪 GoodWe EMS · 🧪 Growatt MIN/MOD TL-XH · 🧪 Growatt (cloud) · 🧪 Sofar · 🧪 Sigenergy · 🧪 Tesla Powerwall · 🧪 Enphase IQ Battery · 🧪 Megarevo · 🧪 Huawei · 🧪 Sungrow · 🧪 SolarEdge · 🧪 Fox ESS · 🧪 GivEnergy · 🧪 Solis · 🧪 myenergi libbi · 🧪 Marstek Venus · 🧪 Luxpower · 🧪 E3DC · 🧪 GivEnergy (GivTCP) · 🧪 Anker SOLIX (også Ankers egen integration) · 🧪 Kostal Plenticore · 🧪 SolaX Gen2/Gen3 · 🧪 Growatt (SolaX Modbus) · 🧪 Off-grid via ESPHome (Growatt SPF, SRNE, Voltronic/MPP) · 🧪 Luxpower/EG4 (MonitorMySolar) · 🧪 Zendure SolarFlow/Hyper · 🧪 EcoFlow PowerOcean (lokal Modbus) · 🧪 Marstek Venus (lokal API) · 🧪 Voltronic/Axpert (MQTT, vælges selv) · alle andre ved at vælge kontrollerne selv |
+| **Inverter / batteri** | ✅ Growatt SPH (SPA) · ✅ Victron (ESS) · ✅ Deye (Solarman) · 🧪 Deye / Sunsynk (Sunsynk add-on) · 🧪 Luxpower (LuxPython) · 🧪 Solis FB00+ (SolaX Modbus) · 🧪 Victron (Home Assistant's Victron GX) · 🧪 SolaX Gen4+ (remote control) · 🧪 Canadian Solar EP Cube · ✅ GoodWe (ET/EH/BT/BH) · ✅ Alpha ESS · ✅ SolaX (SolaX Modbus) · ✅ Deye (ESPHome) · ✅ EcoFlow PowerStream · ✅ Kostal (Modbus control) · 🧪 GoodWe EMS · 🧪 Growatt MIN/MOD TL-XH · 🧪 Growatt (cloud) · 🧪 Sofar · 🧪 Sigenergy · 🧪 Tesla Powerwall · 🧪 Enphase IQ Battery · 🧪 Megarevo · 🧪 Huawei · 🧪 Sungrow · 🧪 SolarEdge · 🧪 Fox ESS · 🧪 GivEnergy · 🧪 Solis · 🧪 myenergi libbi · 🧪 Marstek Venus · 🧪 Luxpower · 🧪 E3DC · 🧪 GivEnergy (GivTCP) · 🧪 Anker SOLIX (også Ankers egen integration) · 🧪 Kostal Plenticore · 🧪 SolaX Gen2/Gen3 · 🧪 Growatt (SolaX Modbus) · 🧪 Off-grid via ESPHome (Growatt SPF, SRNE, Voltronic/MPP) · 🧪 Luxpower/EG4 (MonitorMySolar) · 🧪 Zendure SolarFlow/Hyper · 🧪 EcoFlow PowerOcean (lokal Modbus) · 🧪 Marstek Venus (lokal API) · 🧪 Voltronic/Axpert (MQTT, vælges selv) · alle andre ved at vælge kontrollerne selv |
 | **Elbil-lader** | ✅ KEBA · ✅ Easee · 🧪 Zaptec · 🧪 go-e · 🧪 Wallbox · 🧪 Peblar · 🧪 OCPP · 🧪 Alfen · 🧪 Ohme · 🧪 myenergi zappi · 🧪 Hypervolt · alle med en kontakt og en strømindstilling |
 | **Priser** | ✅ Strømligning · ✅ indbyggede spotpriser · ✅ Octopus · 🧪 Nord Pool · 🧪 Tibber · 🧪 Energi Data Service · 🧪 ENTSO-E · 🧪 Amber · 🧪 EDF Tempo · 🧪 EnergyZero · 🧪 easyEnergy · 🧪 Frank Energie · 🧪 Zonneplan · tarifplaner |
 
@@ -240,12 +249,11 @@ Alt går gennem enhedens egen Home Assistant-integration.<br>
 
 ## Spørgsmål
 
-<details><summary><b>Kan den køre ved siden af det system, jeg bruger i dag?</b></summary>
+**Kan den køre ved siden af det system, jeg bruger i dag?**
 
 Ja – det er det, skygge er til. Den styrer aldrig en del, som et andet system styrer, medmindre du beder om det.
-</details>
 
-<details><summary><b>Sender den data nogen steder hen?</b></summary>
+**Sender den data nogen steder hen?**
 
 Kun til udvikleren, og kun det, der står her. Hver installation har et tilfældigt id, som appen selv laver.
 
@@ -270,24 +278,20 @@ Kun til udvikleren, og kun det, der står her. Hver installation har et tilfæld
 
 Alt andet bliver hjemme hos dig – ML-modellerne kører også der. Den henter offentlige data: vejr (Open-Meteo),
 spotpriser (Energi Data Service, energy-charts.info) og valutakurser (ECB).
-</details>
 
-<details><summary><b>Hvad hvis internettet går ned?</b></summary>
+**Hvad hvis internettet går ned?**
 
 Den planlægger videre med de priser og det vejr, den allerede har, og inverteren kører som normalt.
-</details>
 
-<details><summary><b>Skal jeg have et batteri?</b></summary>
+**Skal jeg have et batteri?**
 
 Nej. Med kun solceller planlægger og viser den din dag. Med kun en lader lader den bilen i de billigste perioder.
-</details>
 
-<details><summary><b>Noget ser forkert ud – hvad gør jeg?</b></summary>
+**Noget ser forkert ud – hvad gør jeg?**
 
 Kør **Test dit system** (under Styring), og åbn så **Hjælp**-fanen – skriv hvad der er galt, og vedhæft gerne et
 billede. Det kræver ingen GitHub-konto. Du kan også *Hente diagnosefil* dér og vedhæfte den i et
 [issue](https://github.com/Clahen86/Energy-pilot/issues).
-</details>
 
 ## Godt at vide
 

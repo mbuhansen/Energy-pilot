@@ -2,6 +2,46 @@
 
 Newest first. Each version lists what changed since the one before.
 
+## 0.111.0 – 2026-11-25
+- Sigenergy: hold no longer charges from the grid ("Command Charging (PV First)" is a grid charge) - it is self-consumption with discharging at 0
+- Tesla Powerwall and Enphase: hold sets the reserve to the level rounded down and turns grid charging off - a reserve above the level made them charge from the grid
+- Huawei: a forced charge is always ended with the integration's stop service - without the "Stop forcible charge" button it ran on into the dear hours
+- SolarEdge: "Advanced Power Control" is turned on when there. GivTCP: "Enable charge target" is turned on to charge. Sunsynk add-on: the other entity names (Prog1 charge option, Set SoC timezone1) are found too
+- Luxpower: the settings check no longer offers the level Energy Pilot holds at as your minimum (it could ratchet it up)
+- Ohme and myenergi zappi are handed back to their own mode (smart charge / Eco+) when Energy Pilot lets go
+- New profiles: Victron through Home Assistant's own Victron GX integration, Luxpower (LuxPython), Solis FB00+ (SolaX Modbus), SolaX Gen4+ by remote control (picked by hand) and Canadian Solar EP Cube
+- Your own setup can run your own scripts for each step (normal, hold, charge, and an optional sell), with the plan's target, level and power as variables - for any inverter without a profile
+- Self-test: cloud inverters (Fox cloud, Growatt cloud, Anker, EP Cube) get 10 minutes to react, and a nearly full or cold battery is judged more gently
+- The plan knows the inverter's AC power (from its rated-power sensor or its model's name): it doesn't plan to charge from the grid or discharge faster than the inverter can
+- Without Solcast, the plan learns the forecast's own poor days and counts on a little less sun when the forecast is unsure
+- Water heaters with a temperature of their own heat 10 °C extra on sun that would otherwise be sold cheaply, and go back when it's gone
+## 0.110.3 – 2026-11-25
+- Savings: "Sun and battery" today now counts the power still in the battery at what it cost, like "Battery" does - it could show less saved today than the battery alone
+## 0.110.2 – 2026-11-25
+- Easee (and other known chargers) with your own start/stop switch chosen: the charger keeps its own control of the current, pause and resume, and your switch starts and stops it as well. Before, only the switch was used and the current was lost
+- Sofar (ZCS Azzurro) on the new Solarman integration is no longer called the old, read-only one, and the hint says "Deye / Sofar" instead of "Deye"
+- Self-test: a failed step says why without names (the kind of refusal, or where the controls came from) - so faults can be mended from the data
+## 0.110.1 – 2026-11-25
+- Cars: the "plugged in" sensor list shows only sensors from the car's own integration (Tesla, VW, Kia …), never the charger's - the charger already tells that a car is in it. A line under the field says to pick None when the car isn't in Home Assistant
+## 0.110.0 – 2026-11-25
+- More cars than chargers: a list of cars under Settings → Car, each with its own name, battery level and "plugged in" sensor (when the car is in Home Assistant) and battery size. A car without Home Assistant needs only a name and a size
+- Each charger finds the car in it by itself: the car whose own sensor says it is plugged in; else, once each car has 3 charges behind it, by the power it takes (only when the cars charge clearly differently); else the same car as last time
+- "Car in the charger" on the car card, the dashboard card and in the companion: pick it with one tap - it stays until the car is unplugged
+- The charger uses the level, size, target, ready time, at most and 100 % for the trip of the car in it
+- Under Settings each car shows what it takes ("Takes about 3.7 kW, 5 charges")
+- Without a list of cars nothing changes
+## 0.109.0 – 2026-11-25
+- Extra cars like the first one: pick the car's battery level (and its size) under Settings → Car, and it charges to a target in % instead of a set number of kWh. Its card has the level, the target (60–100 %), 100 % for the next trip (off by itself when the car leaves full), Charge now and Ready at
+- "Charge now" on an extra car acts at once, not at the next round
+- The dashboard card shows every extra car under the first: level, planned hours and buttons
+- Companion 1.2.0: each extra car gets its own entities - Charge now, Ready at, Charge to (or At most), 100 % for next trip and Next charge - named after the car
+## 0.108.1 – 2026-11-25
+- New profile "Deye / Sunsynk (Sunsynk add-on)": the kellerza Sunsynk add-on's six programmes (Prog1 capacity, Prog1 charge, Use timer). Found by itself - a Deye on the add-on no longer gets the Solarman profile, which has none of its controls
+- Controls with Home Assistant's "_2" at the end (a re-added integration, e.g. select.rc_force_charge_discharge_2 on Solis) are now found by every profile
+- Savings: a battery reading that can't be real (above 50 kW - a wrong unit, W taken as kW) is no longer counted. A day that was counted that way (thousands saved in one day) is set to nothing, once
+- "Move the integration to the Marketplace": the address is on its own line again, not one letter per line
+- The charging curve has names on its axes (battery level, charging speed), and the card is in French, Swedish and Norwegian too
+- House model: learning with exactly one week of data no longer crashes (#59)
 ## 0.108.0 – 2026-11-25
 
 - New optional role "Other generation (wind, hydro …)" under Sun: power made on the spot that can't be switched, such as a small wind turbine. It counts in the energy balance (house, surplus for the car, savings) and shows in the flow as "SUN · OTHER", but stays out of the solar forecast, solar learning and the shared hours. No forecast for it yet: the plan uses it as it comes

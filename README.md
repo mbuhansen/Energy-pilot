@@ -130,7 +130,8 @@ Small batteries and machines on the sun or in the cheapest hours – **after** t
 - **Learns** how much and how long each thing takes, and **finds them by itself** – never phones, lights or the car.
 - Only the sun that would otherwise be sold, and always within the main fuse.
 - **Water heater** on a switch: found by itself, stays on and only rests in up to 4 dear hours a day – the water
-  stays hot. Turn it on yourself and it stays on.
+  stays hot. Turn it on yourself and it stays on. With a temperature of its own in Home Assistant it also heats 10 °C
+  extra on sun that would otherwise be sold cheaply – the tank stores the sun as heat.
 
 <p align="center"><img src="docs/things_en.png" width="640" alt="Runs cheaply"></p>
 
@@ -187,18 +188,27 @@ Two ways of forecasting side by side, and the better one decides:
 - **Dashboard cards** for the energy flow, battery, car and plan.
 - **Quarter-hour prices** – planned and drawn in 15 or 30 minute slots when your price comes like that, not as the hour's average.
 - **Sensors** for your own automations: the decision now, next battery charge, next car charge, next sale, **cheapest
-  hour** (start the dishwasher then), what the battery saved and what the power in it cost.
-- **Buttons and switches:** *Charge now*, *Ready at*, and *Battery/Car control* (Shadow / Control / Off).
+  hour** (start the dishwasher then), what the battery saved and what the power in it cost, **price level** (cheap /
+  normal / dear), **battery health** (what it holds against its label) and **Problem** (on when something needs a look).
+- **Buttons and switches:** *Charge now*, *Ready at*, *Charge to*, *100 % for next trip* and *Battery/Car control*
+  (Shadow / Control / Off) – and the same for every extra car, plus *Car in charger* when you have more cars than chargers.
 - **A settings check** that explains in plain words when a setting spoils the plan, with a one-tap fix.
 
-<details>
-<summary><b>More – several batteries and chargers, off-grid, power tariffs, odd setups</b></summary>
+### 🧩 More setups – several batteries and chargers, off-grid, power tariffs
 
+- **Other generation** – a small wind turbine or hydro: counted in the energy balance, the car's surplus and the
+  savings, but kept out of the solar forecast.
 - **Several home batteries** – a SolarEdge and a Victron, say: planned as one, each controlled through its own inverter
   and put in control on its own.
 - **Several chargers** – each car has its own *charge now*, *ready at* and *at most*, and all stay under the main fuse.
 
   ![Two batteries and two chargers](docs/multi_en.png)
+- **More cars than chargers** – add your cars, each with its own name, size, target and ready time (a car outside Home
+  Assistant needs only a name and a size). Each charger finds the car in it by itself: from the car's own sensor, else
+  by the power it charges with once it knows the cars, else the same car as last time. Pick it with one tap when it
+  guesses wrong.
+
+  ![Two chargers, three cars](docs/cars_en.png)
 
 - **No house sensor needed** – it works the house out from your grid, solar, battery and car meters.
 - **Any solar forecast** – Solcast, Open-Meteo, Forecast.Solar … or its own from the weather and your panels' history.
@@ -210,7 +220,6 @@ Two ways of forecasting side by side, and the better one decides:
 - **Octopus Agile** – the coming prices come from Agile Predict until the real ones are out.
 - **Your own AppDaemon in shadow** – runs your existing setup unchanged next to its own engine and shows how often they agree.
 
-</details>
 
 ## Dashboard cards
 
@@ -231,12 +240,13 @@ Marketplace (HACS): [energy-pilot-companion](https://github.com/Clahen86/energy-
 
 ## Brands
 
-Everything goes through the device's own Home Assistant integration.<br>
+Everything goes through the device's own Home Assistant integration. No profile for yours? Pick its controls yourself –
+or your own scripts – for each step under Settings → Control.<br>
 ✅ runs in real use · 🧪 built from the integration's own code, waiting for a beta tester with the hardware
 
 | | |
 |---|---|
-| **Inverter / battery** | ✅ Growatt SPH (SPA) · ✅ Victron (ESS) · ✅ Deye (Solarman) · ✅ GoodWe (ET/EH/BT/BH) · ✅ Alpha ESS · ✅ SolaX (SolaX Modbus) · ✅ Deye (ESPHome) · ✅ EcoFlow PowerStream · ✅ Kostal (Modbus control) · 🧪 GoodWe EMS · 🧪 Growatt MIN/MOD TL-XH · 🧪 Growatt (cloud) · 🧪 Sofar (Solarman or SolaX Modbus) · 🧪 Sigenergy · 🧪 Tesla Powerwall · 🧪 Enphase IQ Battery · 🧪 Megarevo · 🧪 Huawei SUN2000/LUNA2000 · 🧪 Sungrow · 🧪 SolarEdge · 🧪 Fox ESS · 🧪 GivEnergy · 🧪 Solis · 🧪 myenergi libbi · 🧪 Marstek Venus · 🧪 Luxpower · 🧪 E3DC · 🧪 GivEnergy (GivTCP) · 🧪 Anker SOLIX (also Anker's own integration) · 🧪 Kostal Plenticore · 🧪 SolaX Gen2/Gen3 · 🧪 Growatt (SolaX Modbus) · 🧪 Off-grid via ESPHome (Growatt SPF, SRNE, Voltronic/MPP) · 🧪 Luxpower/EG4 (MonitorMySolar) · 🧪 Zendure SolarFlow/Hyper · 🧪 EcoFlow PowerOcean (local Modbus) · 🧪 Marstek Venus (local API) · 🧪 Voltronic/Axpert (MQTT, chosen by hand) · any other with a guide: search its controls and pick an option with one tap |
+| **Inverter / battery** | ✅ Growatt SPH (SPA) · ✅ Victron (ESS) · ✅ Deye (Solarman) · 🧪 Deye / Sunsynk (Sunsynk add-on) · 🧪 Luxpower (LuxPython) · 🧪 Solis FB00+ (SolaX Modbus) · 🧪 Victron (Home Assistant's Victron GX) · 🧪 SolaX Gen4+ (remote control) · 🧪 Canadian Solar EP Cube · ✅ GoodWe (ET/EH/BT/BH) · ✅ Alpha ESS · ✅ SolaX (SolaX Modbus) · ✅ Deye (ESPHome) · ✅ EcoFlow PowerStream · ✅ Kostal (Modbus control) · 🧪 GoodWe EMS · 🧪 Growatt MIN/MOD TL-XH · 🧪 Growatt (cloud) · 🧪 Sofar (Solarman or SolaX Modbus) · 🧪 Sigenergy · 🧪 Tesla Powerwall · 🧪 Enphase IQ Battery · 🧪 Megarevo · 🧪 Huawei SUN2000/LUNA2000 · 🧪 Sungrow · 🧪 SolarEdge · 🧪 Fox ESS · 🧪 GivEnergy · 🧪 Solis · 🧪 myenergi libbi · 🧪 Marstek Venus · 🧪 Luxpower · 🧪 E3DC · 🧪 GivEnergy (GivTCP) · 🧪 Anker SOLIX (also Anker's own integration) · 🧪 Kostal Plenticore · 🧪 SolaX Gen2/Gen3 · 🧪 Growatt (SolaX Modbus) · 🧪 Off-grid via ESPHome (Growatt SPF, SRNE, Voltronic/MPP) · 🧪 Luxpower/EG4 (MonitorMySolar) · 🧪 Zendure SolarFlow/Hyper · 🧪 EcoFlow PowerOcean (local Modbus) · 🧪 Marstek Venus (local API) · 🧪 Voltronic/Axpert (MQTT, chosen by hand) · any other with a guide: search its controls and pick an option with one tap |
 | **EV charger** | ✅ KEBA · ✅ Easee · 🧪 Zaptec · 🧪 go-e · 🧪 Wallbox · 🧪 Peblar · 🧪 OCPP · 🧪 Alfen · 🧪 Ohme · 🧪 myenergi zappi · 🧪 Hypervolt · 🧪 evcc · any with a switch and a current setting |
 | **Prices** | ✅ Strømligning · ✅ built-in spot prices · ✅ Octopus Energy (Intelligent Go, Agile Outgoing) · 🧪 Octopus Agile import · 🧪 Nord Pool · 🧪 Tibber · 🧪 Energi Data Service · 🧪 ENTSO-E · 🧪 Amber · 🧪 EDF Tempo · 🧪 EnergyZero · 🧪 easyEnergy · 🧪 Frank Energie · 🧪 Zonneplan · tariff plans |
 
@@ -247,12 +257,11 @@ Everything goes through the device's own Home Assistant integration.<br>
 
 ## FAQ
 
-<details><summary><b>Can it run next to the system I use today?</b></summary>
+**Can it run next to the system I use today?**
 
 Yes – that's what shadow is for. It never controls a part another system controls, unless you tell it to.
-</details>
 
-<details><summary><b>Does it send any data?</b></summary>
+**Does it send any data?**
 
 Only to the developer, and only what is listed here. Each install has a random id the app makes itself.
 
@@ -277,24 +286,20 @@ Only to the developer, and only what is listed here. Each install has a random i
 
 Everything else stays in your home – the ML models run there too. It fetches public data: weather (Open-Meteo), spot
 prices (Energi Data Service, energy-charts.info) and exchange rates (ECB).
-</details>
 
-<details><summary><b>What if the internet goes down?</b></summary>
+**What if the internet goes down?**
 
 It keeps planning with the prices and weather it already has, and your inverter keeps running as normal.
-</details>
 
-<details><summary><b>Do I need a battery?</b></summary>
+**Do I need a battery?**
 
 No. With just solar it plans and shows your day. With just a charger it charges the car in the cheapest slots.
-</details>
 
-<details><summary><b>Something looks wrong – what do I do?</b></summary>
+**Something looks wrong – what do I do?**
 
 Run **Test your system** (under Control), then open the **Help** tab – write what's wrong and attach a picture if you
 like. No GitHub account needed. You can also *Download diagnostics* there and attach the file to an
 [issue](https://github.com/Clahen86/Energy-pilot/issues).
-</details>
 
 ## Good to know
 

@@ -148,6 +148,7 @@ class Battery:
     quiet: frozenset = frozenset()  # hours (0-23) the battery must not charge from the grid (the sun still fills it)
     export: bool = False  # may sell from the battery when it pays (off unless the user turns it on)
     wear: float = 0.0  # what one kWh into or out of the battery wears it (money per kWh) - a move must beat it
+    ac_kw: float | None = None  # the inverter's AC power (invpower.py): grid charging and discharging go through it
     export_limit_kw: float | None = None  # what may be sent to the grid
     taper: tuple = ()  # (from level, share of the charge power it really takes) - learned; most slow down near full
     no_discharge: frozenset = frozenset()  # slots the battery must not discharge in (the car charges on cheap power)
@@ -299,6 +300,8 @@ def plan_battery(hours: list[Hour], soc_now: float, b: Battery, end_value: float
                         continue  # more than it takes at this level (it slows down when nearly full)
                     into = delta / eff  # what has to go in
                     from_sun = min(into, max(0.0, h.sun - h.house))
+                    if b.ac_kw is not None and into - from_sun > b.ac_kw * h.length + 1e-9:
+                        continue  # from the grid only as fast as the inverter's AC side (the sun's DC goes in beside it)
                     grid = h.house - h.sun + into
                     if not b.grid_charge and grid > max(0.0, h.house - h.sun) + 1e-9:
                         continue
@@ -313,6 +316,8 @@ def plan_battery(hours: list[Hour], soc_now: float, b: Battery, end_value: float
                     out = -delta * eff  # what comes out to the house
                     if -delta > b.max_discharge_kw * h.length + 1e-9:
                         continue
+                    if b.ac_kw is not None and out > b.ac_kw * h.length + 1e-9:
+                        continue  # never more out than the inverter can turn into AC
                     need = max(0.0, h.house - h.sun)
                     action = "discharge"
                     if out > need + 1e-9:
@@ -736,7 +741,23 @@ class Engine:
             force={k: v for k, v in (s.get("manual") or {}).items() if v in ("charge", "sell", "hold")},
             peak_kw=(pt := self.power_tariff()) and pt["limit_kw"],
             peak_price=pt["price_per_kw"] if pt else 0.0,
+            ac_kw=None if more else self.inverter_ac_kw(ctl),  # one inverter: its own AC power
         )
+
+    def inverter_ac_kw(self, ctl: Any) -> float | None:
+        """The inverter's AC power where it can be read (a rated-power sensor of its integration, or its model's
+        name). Above the battery's own limits it changes nothing."""
+        if ctl is None:
+            return None
+        from . import invpower
+
+        try:
+            plat = (getattr(ctl, "platforms", None) or {}).get("battery")
+            reg = getattr(ctl, "_ent_reg", None) or {}
+            allowed = {e for e, r in reg.items() if plat and (r or {}).get("platform") == plat}
+            return invpower.ac_kw(getattr(ctl, "model", None), self.ov.ha.states, allowed)
+        except Exception:  # noqa: BLE001 - never in the way of the plan
+            return None
 
     def charger_kw(self) -> float:
         """What the plan counts on the (first) car to take in an hour: the charger's power, capped at what the car was
@@ -1468,8 +1489,13 @@ class Engine:
         # An unsure forecast (Solcast's poor day far below the expected): the plan counts on a little less sun, so a
         # cloudier day than foreseen doesn't leave the battery short. A sure one (a clear sky) changes nothing.
         # After the learning above, which keeps comparing with the forecast itself.
+        # Without Solcast's poor day: the forecast's own poor days, learned (learning.sun_low).
+        own_low = L.sun_low() if hasattr(L, "sun_low") else None
         for i, h in enumerate(hours):
-            h.sun = doubt_sun(h.sun, rows[i].get("sun"), rows[i].get("sun10"))
+            raw, low = rows[i].get("sun"), rows[i].get("sun10")
+            if low is None and own_low is not None and raw:
+                low = raw * own_low
+            h.sun = doubt_sun(h.sun, raw, low)
         # Nobody home for a day (away.py): the house only uses what runs by itself until someone is back.
         from . import away as _away
 
@@ -1603,7 +1629,7 @@ class Engine:
         if ev is None or not f.get("plug"):
             return None
         # What the user set wins; otherwise the car's learned habits (when it leaves, how much it takes).
-        cap = float(ev.get("cap")) if self.ov.role("ev_cap") and ev.get("cap") else self.habits.need(float(ev.get("cap") or st.get("ev_need_kwh") or 20))
+        cap = float(ev.get("cap")) if (self.ov.role("ev_cap") or ev.get("car")) and ev.get("cap") else self.habits.need(float(ev.get("cap") or st.get("ev_need_kwh") or 20))
         need = cap - float(ev.get("session_kwh") or 0)
         if ev.get("soc") is not None:
             # The car says how full it is: what's missing up to the target (100 % before a long trip).
@@ -1645,7 +1671,8 @@ class Engine:
         st = self.ov.settings
         quiet = self.quiet_hours("car")
         prices = {h.start: h.price for h in hours}
-        parts = [("car", None)] + [(f"car{i + 2}", c) for i, c in enumerate(chargers.extras(st))]
+        parts = [("car", None)] + [(f"car{i + 2}", c) for i, c in enumerate(chargers.live(st))]
+        extra_now = (f.get("cars") or [])
         for part, c in parts:
             if (ctl and ctl.mode(part) == "control") or not self.ghosts.wants_plan(part):
                 continue
@@ -1665,6 +1692,9 @@ class Engine:
             else:
                 kw = float(c.get("charger_kw") or 7.4)
                 need = self.ghosts.need(part, float(c.get("need_kwh") or 20))
+                now_c = extra_now[int(part[3:]) - 2] if len(extra_now) > int(part[3:]) - 2 else {}
+                if now_c.get("soc") is not None:
+                    need = chargers.need(c, now_c)
                 ready, mode = chargers.ready_at(c, now), c.get("mode")
             skip = {h.start for h in hours if h.start.hour in quiet}
             chosen = plan_car(hours, max(0.0, need), kw, ready, now, solar_only=mode == "solar", skip=skip)
@@ -1675,7 +1705,7 @@ class Engine:
         """The other chargers: each car planned on its own - the cars before it and the main fuse taken into account."""
         from . import chargers
 
-        more = chargers.extras(self.ov.settings)
+        more = chargers.live(self.ov.settings)
         if not more:
             return None
         st = self.ov.settings
@@ -1690,7 +1720,7 @@ class Engine:
             kw = float(c.get("charger_kw") or 7.4)
             entry = {"name": c.get("name") or "", "plug": bool(now_c.get("plug")), "hours": [], "need_kwh": 0.0, "slot_min": slot_min}
             if now_c.get("plug"):
-                need = max(0.0, float(c.get("need_kwh") or 20) - float(now_c.get("session_kwh") or 0))
+                need = chargers.need(c, now_c)
                 if c.get("now"):
                     ready = now + timedelta(hours=need / kw + 0.25)  # charge now: straight away, whatever the price
                 else:
