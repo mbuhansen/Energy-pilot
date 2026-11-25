@@ -25,21 +25,21 @@ const P = {
   down: '<path d="M12 5v14M5 12l7 7 7-7"/>', up: '<path d="M12 19V5M5 12l7-7 7 7"/>',
 };
 const TX = {
-  da: { evs: {"soc": "Batteri", "to": "Lad til", "trip": "100 % til turen", "reached": "Nået målet"}, leg: {"price": "Pris", "sun": "Sol", "house": "Huset", "soc": "Batteriniveau", "car": "Bilen lader", "export": "Batteriet sælger"}, sun: "Sol", grid: "Net", buy: "Køber", sell: "Sælger", charging: "Lader", discharging: "Aflader", idle: "Hviler", plugged: "Sat i", notPlugged: "Ikke sat i",
+  da: { evs: {"soc": "Batteri", "to": "Lad til", "trip": "100 % til turen", "reached": "Nået målet"}, leg: {"price": "Pris", "sun": "Sol", "house": "Huset", "soc": "Batteriniveau", "car": "Bilen lader", "export": "Batteriet sælger"}, sun: "Sol", other: "Andet", grid: "Net", buy: "Køber", sell: "Sælger", charging: "Lader", discharging: "Aflader", idle: "Hviler", usable: "kan bruges", plugged: "Sat i", notPlugged: "Ikke sat i",
     plan: "Dagens plan", car: "Bilen", battery: "Batteri", target: "mål", price: "Pris nu", chargeNow: "Lad nu", readyAt: "Klar kl.", atMost: "Højst",
     cheap: "billig", mid: "normal", dear: "dyr", cheapest: "Billigste timer", noData: "Energipilot kører ikke endnu", tomorrow: "I morgen",
     reasons: { discharge: "Strømmen er dyr nu, så batteriet tager over.", charge: "Solen giver overskud - det gemmes.", grid: "Strømmen er billig - batteriet fyldes.", hold: "Strømmen gemmes til de dyre timer." },
     views: { overview: "Alt", flow: "Energiflow", plan: "Dagens plan", car: "Bilen", battery: "Batteri" }, view: "Visning", title: "Titel" },
-  en: { evs: {"soc": "Battery", "to": "Charge to", "trip": "100 % for the trip", "reached": "Target reached"}, leg: {"price": "Price", "sun": "Sun", "house": "House", "soc": "Battery level", "car": "Car charges", "export": "Battery sells"}, sun: "Sun", grid: "Grid", buy: "Buying", sell: "Selling", charging: "Charging", discharging: "Discharging", idle: "Idle", plugged: "Plugged in", notPlugged: "Not plugged in",
+  en: { evs: {"soc": "Battery", "to": "Charge to", "trip": "100 % for the trip", "reached": "Target reached"}, leg: {"price": "Price", "sun": "Sun", "house": "House", "soc": "Battery level", "car": "Car charges", "export": "Battery sells"}, sun: "Sun", other: "Other", grid: "Grid", buy: "Buying", sell: "Selling", charging: "Charging", discharging: "Discharging", idle: "Idle", usable: "usable", plugged: "Plugged in", notPlugged: "Not plugged in",
     plan: "Today's plan", car: "The car", battery: "Battery", target: "target", price: "Price now", chargeNow: "Charge now", readyAt: "Ready at", atMost: "At most",
     cheap: "cheap", mid: "normal", dear: "dear", cheapest: "Cheapest hours", noData: "Energy Pilot isn't running yet", tomorrow: "Tomorrow",
     reasons: { discharge: "Power is expensive now, so the battery takes over.", charge: "The sun gives a surplus - it's stored.", grid: "Power is cheap - the battery fills up.", hold: "The power is kept for the expensive hours." },
     views: { overview: "Everything", flow: "Energy flow", plan: "Today's plan", car: "The car", battery: "Battery" }, view: "View", title: "Title" },
-  de: {"evs": {"soc": "Batterie", "to": "Laden bis", "trip": "100 % für die Fahrt", "reached": "Ziel erreicht"}, "leg": {"price": "Preis", "sun": "Sonne", "house": "Haus", "soc": "Batteriestand", "car": "Auto lädt", "export": "Batterie speist ein"}, "sun": "Sonne", "grid": "Netz", "buy": "Bezug", "sell": "Einspeisung", "charging": "Lädt", "discharging": "Entlädt", "idle": "Ruht", "plugged": "Angesteckt", "notPlugged": "Nicht angesteckt", "plan": "Plan für heute", "car": "Das Auto", "battery": "Batterie", "target": "Ziel", "price": "Preis jetzt", "chargeNow": "Jetzt laden", "readyAt": "Fertig um", "atMost": "Höchstens", "cheap": "günstig", "mid": "normal", "dear": "teuer", "cheapest": "Günstigste Stunden", "noData": "Energy Pilot läuft noch nicht", "tomorrow": "Morgen", "reasons": {"discharge": "Strom ist jetzt teuer, also übernimmt die Batterie.", "charge": "Die Sonne liefert Überschuss – er wird gespeichert.", "grid": "Strom ist günstig – die Batterie füllt sich.", "hold": "Der Strom wird für die teuren Stunden aufgehoben."}, "views": {"overview": "Alles", "flow": "Energiefluss", "plan": "Plan für heute", "car": "Das Auto", "battery": "Batterie"}, "view": "Ansicht", "title": "Titel"},
-  fr: {"evs": {"soc": "Batterie", "to": "Charger jusqu'à", "trip": "100 % pour le trajet", "reached": "Objectif atteint"}, "leg": {"price": "Prix", "sun": "Soleil", "house": "Maison", "soc": "Niveau batterie", "car": "La voiture charge", "export": "La batterie vend"}, "sun": "Soleil", "grid": "Réseau", "buy": "Achat", "sell": "Vente", "charging": "En charge", "discharging": "En décharge", "idle": "Au repos", "plugged": "Branchée", "notPlugged": "Non branchée", "plan": "Plan du jour", "car": "La voiture", "battery": "Batterie", "target": "objectif", "price": "Prix actuel", "chargeNow": "Charger maintenant", "readyAt": "Prête à", "atMost": "Au maximum", "cheap": "bon marché", "mid": "normal", "dear": "cher", "cheapest": "Heures les moins chères", "noData": "Energy Pilot ne tourne pas encore", "tomorrow": "Demain", "reasons": {"discharge": "L'électricité est chère, la batterie prend le relais.", "charge": "Le soleil donne un surplus – il est stocké.", "grid": "L'électricité est bon marché – la batterie se remplit.", "hold": "L'énergie est gardée pour les heures chères."}, "views": {"overview": "Tout", "flow": "Flux d'énergie", "plan": "Plan du jour", "car": "La voiture", "battery": "Batterie"}, "view": "Vue", "title": "Titre"},
-  nl: {"evs": {"soc": "Accu", "to": "Laden tot", "trip": "100 % voor de rit", "reached": "Doel bereikt"}, "leg": {"price": "Prijs", "sun": "Zon", "house": "Huis", "soc": "Batterijniveau", "car": "Auto laadt", "export": "Batterij verkoopt"}, "sun": "Zon", "grid": "Net", "buy": "Afname", "sell": "Teruglevering", "charging": "Laadt", "discharging": "Ontlaadt", "idle": "Rust", "plugged": "Aangesloten", "notPlugged": "Niet aangesloten", "plan": "Plan voor vandaag", "car": "De auto", "battery": "Batterij", "target": "doel", "price": "Prijs nu", "chargeNow": "Nu laden", "readyAt": "Klaar om", "atMost": "Maximaal", "cheap": "goedkoop", "mid": "normaal", "dear": "duur", "cheapest": "Goedkoopste uren", "noData": "Energy Pilot draait nog niet", "tomorrow": "Morgen", "reasons": {"discharge": "Stroom is nu duur, dus de batterij neemt het over.", "charge": "De zon geeft een overschot – het wordt opgeslagen.", "grid": "Stroom is goedkoop – de batterij vult zich.", "hold": "De stroom wordt bewaard voor de dure uren."}, "views": {"overview": "Alles", "flow": "Energiestroom", "plan": "Plan voor vandaag", "car": "De auto", "battery": "Batterij"}, "view": "Weergave", "title": "Titel"},
-  sv: {"evs": {"soc": "Batteri", "to": "Ladda till", "trip": "100 % till resan", "reached": "Målet nått"}, "leg": {"price": "Pris", "sun": "Sol", "house": "Huset", "soc": "Batterinivå", "car": "Bilen laddar", "export": "Batteriet säljer"}, "sun": "Sol", "grid": "Nät", "buy": "Köper", "sell": "Säljer", "charging": "Laddar", "discharging": "Laddar ur", "idle": "Vilar", "plugged": "Inkopplad", "notPlugged": "Inte inkopplad", "plan": "Dagens plan", "car": "Bilen", "battery": "Batteri", "target": "mål", "price": "Pris nu", "chargeNow": "Ladda nu", "readyAt": "Klar kl.", "atMost": "Högst", "cheap": "billigt", "mid": "normalt", "dear": "dyrt", "cheapest": "Billigaste timmarna", "noData": "Energy Pilot körs inte än", "tomorrow": "I morgon", "reasons": {"discharge": "Strömmen är dyr nu, så batteriet tar över.", "charge": "Solen ger överskott – det lagras.", "grid": "Strömmen är billig – batteriet fylls.", "hold": "Strömmen sparas till de dyra timmarna."}, "views": {"overview": "Allt", "flow": "Energiflöde", "plan": "Dagens plan", "car": "Bilen", "battery": "Batteri"}, "view": "Vy", "title": "Titel"},
-  nb: {"evs": {"soc": "Batteri", "to": "Lad til", "trip": "100 % til turen", "reached": "Målet nådd"}, "leg": {"price": "Pris", "sun": "Sol", "house": "Huset", "soc": "Batterinivå", "car": "Bilen lader", "export": "Batteriet selger"}, "sun": "Sol", "grid": "Nett", "buy": "Kjøper", "sell": "Selger", "charging": "Lader", "discharging": "Lader ut", "idle": "Hviler", "plugged": "Koblet til", "notPlugged": "Ikke koblet til", "plan": "Dagens plan", "car": "Bilen", "battery": "Batteri", "target": "mål", "price": "Pris nå", "chargeNow": "Lad nå", "readyAt": "Klar kl.", "atMost": "Høyst", "cheap": "billig", "mid": "normal", "dear": "dyr", "cheapest": "Billigste timer", "noData": "Energipilot kjører ikke ennå", "tomorrow": "I morgen", "reasons": {"discharge": "Strømmen er dyr nå, så batteriet tar over.", "charge": "Solen gir overskudd – det lagres.", "grid": "Strømmen er billig – batteriet fylles.", "hold": "Strømmen spares til de dyre timene."}, "views": {"overview": "Alt", "flow": "Energiflyt", "plan": "Dagens plan", "car": "Bilen", "battery": "Batteri"}, "view": "Visning", "title": "Tittel"},
+  de: {"evs": {"soc": "Batterie", "to": "Laden bis", "trip": "100 % für die Fahrt", "reached": "Ziel erreicht"}, "leg": {"price": "Preis", "sun": "Sonne", "house": "Haus", "soc": "Batteriestand", "car": "Auto lädt", "export": "Batterie speist ein"}, "sun": "Sonne", "other": "Andere", "grid": "Netz", "buy": "Bezug", "sell": "Einspeisung", "charging": "Lädt", "discharging": "Entlädt", "idle": "Ruht", "usable": "nutzbar", "plugged": "Angesteckt", "notPlugged": "Nicht angesteckt", "plan": "Plan für heute", "car": "Das Auto", "battery": "Batterie", "target": "Ziel", "price": "Preis jetzt", "chargeNow": "Jetzt laden", "readyAt": "Fertig um", "atMost": "Höchstens", "cheap": "günstig", "mid": "normal", "dear": "teuer", "cheapest": "Günstigste Stunden", "noData": "Energy Pilot läuft noch nicht", "tomorrow": "Morgen", "reasons": {"discharge": "Strom ist jetzt teuer, also übernimmt die Batterie.", "charge": "Die Sonne liefert Überschuss – er wird gespeichert.", "grid": "Strom ist günstig – die Batterie füllt sich.", "hold": "Der Strom wird für die teuren Stunden aufgehoben."}, "views": {"overview": "Alles", "flow": "Energiefluss", "plan": "Plan für heute", "car": "Das Auto", "battery": "Batterie"}, "view": "Ansicht", "title": "Titel"},
+  fr: {"evs": {"soc": "Batterie", "to": "Charger jusqu'à", "trip": "100 % pour le trajet", "reached": "Objectif atteint"}, "leg": {"price": "Prix", "sun": "Soleil", "house": "Maison", "soc": "Niveau batterie", "car": "La voiture charge", "export": "La batterie vend"}, "sun": "Soleil", "other": "Autre", "grid": "Réseau", "buy": "Achat", "sell": "Vente", "charging": "En charge", "discharging": "En décharge", "idle": "Au repos", "usable": "utilisables", "plugged": "Branchée", "notPlugged": "Non branchée", "plan": "Plan du jour", "car": "La voiture", "battery": "Batterie", "target": "objectif", "price": "Prix actuel", "chargeNow": "Charger maintenant", "readyAt": "Prête à", "atMost": "Au maximum", "cheap": "bon marché", "mid": "normal", "dear": "cher", "cheapest": "Heures les moins chères", "noData": "Energy Pilot ne tourne pas encore", "tomorrow": "Demain", "reasons": {"discharge": "L'électricité est chère, la batterie prend le relais.", "charge": "Le soleil donne un surplus – il est stocké.", "grid": "L'électricité est bon marché – la batterie se remplit.", "hold": "L'énergie est gardée pour les heures chères."}, "views": {"overview": "Tout", "flow": "Flux d'énergie", "plan": "Plan du jour", "car": "La voiture", "battery": "Batterie"}, "view": "Vue", "title": "Titre"},
+  nl: {"evs": {"soc": "Accu", "to": "Laden tot", "trip": "100 % voor de rit", "reached": "Doel bereikt"}, "leg": {"price": "Prijs", "sun": "Zon", "house": "Huis", "soc": "Batterijniveau", "car": "Auto laadt", "export": "Batterij verkoopt"}, "sun": "Zon", "other": "Overig", "grid": "Net", "buy": "Afname", "sell": "Teruglevering", "charging": "Laadt", "discharging": "Ontlaadt", "idle": "Rust", "usable": "bruikbaar", "plugged": "Aangesloten", "notPlugged": "Niet aangesloten", "plan": "Plan voor vandaag", "car": "De auto", "battery": "Batterij", "target": "doel", "price": "Prijs nu", "chargeNow": "Nu laden", "readyAt": "Klaar om", "atMost": "Maximaal", "cheap": "goedkoop", "mid": "normaal", "dear": "duur", "cheapest": "Goedkoopste uren", "noData": "Energy Pilot draait nog niet", "tomorrow": "Morgen", "reasons": {"discharge": "Stroom is nu duur, dus de batterij neemt het over.", "charge": "De zon geeft een overschot – het wordt opgeslagen.", "grid": "Stroom is goedkoop – de batterij vult zich.", "hold": "De stroom wordt bewaard voor de dure uren."}, "views": {"overview": "Alles", "flow": "Energiestroom", "plan": "Plan voor vandaag", "car": "De auto", "battery": "Batterij"}, "view": "Weergave", "title": "Titel"},
+  sv: {"evs": {"soc": "Batteri", "to": "Ladda till", "trip": "100 % till resan", "reached": "Målet nått"}, "leg": {"price": "Pris", "sun": "Sol", "house": "Huset", "soc": "Batterinivå", "car": "Bilen laddar", "export": "Batteriet säljer"}, "sun": "Sol", "other": "Övrigt", "grid": "Nät", "buy": "Köper", "sell": "Säljer", "charging": "Laddar", "discharging": "Laddar ur", "idle": "Vilar", "usable": "användbart", "plugged": "Inkopplad", "notPlugged": "Inte inkopplad", "plan": "Dagens plan", "car": "Bilen", "battery": "Batteri", "target": "mål", "price": "Pris nu", "chargeNow": "Ladda nu", "readyAt": "Klar kl.", "atMost": "Högst", "cheap": "billigt", "mid": "normalt", "dear": "dyrt", "cheapest": "Billigaste timmarna", "noData": "Energy Pilot körs inte än", "tomorrow": "I morgon", "reasons": {"discharge": "Strömmen är dyr nu, så batteriet tar över.", "charge": "Solen ger överskott – det lagras.", "grid": "Strömmen är billig – batteriet fylls.", "hold": "Strömmen sparas till de dyra timmarna."}, "views": {"overview": "Allt", "flow": "Energiflöde", "plan": "Dagens plan", "car": "Bilen", "battery": "Batteri"}, "view": "Vy", "title": "Titel"},
+  nb: {"evs": {"soc": "Batteri", "to": "Lad til", "trip": "100 % til turen", "reached": "Målet nådd"}, "leg": {"price": "Pris", "sun": "Sol", "house": "Huset", "soc": "Batterinivå", "car": "Bilen lader", "export": "Batteriet selger"}, "sun": "Sol", "other": "Annet", "grid": "Nett", "buy": "Kjøper", "sell": "Selger", "charging": "Lader", "discharging": "Lader ut", "idle": "Hviler", "usable": "kan brukes", "plugged": "Koblet til", "notPlugged": "Ikke koblet til", "plan": "Dagens plan", "car": "Bilen", "battery": "Batteri", "target": "mål", "price": "Pris nå", "chargeNow": "Lad nå", "readyAt": "Klar kl.", "atMost": "Høyst", "cheap": "billig", "mid": "normal", "dear": "dyr", "cheapest": "Billigste timer", "noData": "Energipilot kjører ikke ennå", "tomorrow": "I morgen", "reasons": {"discharge": "Strømmen er dyr nå, så batteriet tar over.", "charge": "Solen gir overskudd – det lagres.", "grid": "Strømmen er billig – batteriet fylles.", "hold": "Strømmen spares til de dyre timene."}, "views": {"overview": "Alt", "flow": "Energiflyt", "plan": "Dagens plan", "car": "Bilen", "battery": "Batteri"}, "view": "Visning", "title": "Tittel"},
 };
 const COL = { discharge: "#a78bfa", charge: "#f5b544", grid: "#6ea8fe", hold: "#7c6cff" };
 const DICON = { discharge: "down", charge: "up", grid: "bolt", hold: "pause" };
@@ -194,6 +194,31 @@ function qBars(h, x, w, y0, hOf, attrs, gap = 1) {
   return q.map((p, k) => { const bh = Math.max(0, hOf(p)), a = typeof attrs === "function" ? attrs(p) : attrs;
     return `<rect x="${(x + k * sw + (k ? gap / 2 : 0)).toFixed(1)}" y="${(y0 - bh).toFixed(1)}" width="${Math.max(1, sw - (q.length > 1 ? gap : 0)).toFixed(1)}" height="${bh.toFixed(1)}" ${a}/>`; }).join("");
 }
+/* The Home Assistant app for Mac crashes on Apple's time picker (UIPickerView isn't supported there): in that app only,
+   time fields become plain text "HH:MM" - "730" or "7.30" is made 07:30 before anything reads it, nonsense is put back.
+   Browsers (Safari and Chrome on a Mac too), the iPhone/iPad and Android apps keep the normal time picker. */
+const MAC_APP = /io\.robbie\.HomeAssistant[^)]*mac ?os/i.test(navigator.userAgent);
+function hhmm(v) {
+  const m = String(v || "").trim().match(/^(\d{1,2})(?:[:.,\s]?(\d{2}))?$/);
+  if (!m) return null;
+  const h = +m[1], mi = +(m[2] || 0);
+  return h < 24 && mi < 60 ? `${String(h).padStart(2, "0")}:${String(mi).padStart(2, "0")}` : null;
+}
+function macTimes(root) {
+  const fix = (el) => { el.type = "text"; el.classList.add("mactime"); el.inputMode = "numeric"; el.placeholder = "HH:MM"; el.maxLength = 5; el.autocomplete = "off"; };
+  const all = () => root.querySelectorAll('input[type="time"]').forEach(fix);
+  all();
+  new MutationObserver(all).observe(root, { childList: true, subtree: true });
+  root.addEventListener("change", (e) => {
+    const el = e.target;
+    if (!el || !el.classList || !el.classList.contains("mactime")) return;
+    if (!el.value.trim()) { el.value = ""; return; }  // emptied on purpose: kept empty
+    const v = hhmm(el.value);
+    if (v) el.value = v;
+    else { el.value = el.defaultValue; e.stopImmediatePropagation(); }
+  }, true);
+}
+
 class EnergipilotCard extends HTMLElement {
   setConfig(config) { this._config = { view: "overview", ...config }; if (!this.shadowRoot) this.attachShadow({ mode: "open" }); this._uid = Math.random().toString(36).slice(2, 7); }
   static getConfigElement() { return document.createElement("energipilot-card-editor"); }
@@ -226,12 +251,13 @@ class EnergipilotCard extends HTMLElement {
     const r = this._hass.states[SENSOR]?.attributes?.roles || {};
     const sign = this._hass.states[SENSOR]?.attributes?.battery_sign || 1;  // Fox ESS and others count discharging as positive
     const rawBatt = this._w(r.battery_power);
-    const pv = this._w(r.pv_power), house = this._w(r.house_power), batt = rawBatt == null ? null : rawBatt * sign, soc = this._num(r.battery_soc);
+    const sun = this._w(r.pv_power), other = r.other_power ? this._w(r.other_power) : null;  // other power (wind …): with the sun
+    const pv = other == null ? sun : (sun || 0) + Math.max(0, other), house = this._w(r.house_power), batt = rawBatt == null ? null : rawBatt * sign, soc = this._num(r.battery_soc);
     let grid = this._w(r.grid_power); const ev = this._w(r.ev_power);
     const ps = r.ev_plug ? String(this._hass.states[r.ev_plug]?.state || "").toLowerCase() : null;
     const plug = ps == null ? null : ps === "on" || /^(charg|plug|connect|wait|paus|suspend|ready|finish|complete|occupied)/.test(ps);  // an "on" or a charger's own state
     if (grid == null && pv != null && house != null) grid = house + (ev || 0) + (batt || 0) - pv;
-    return { pv, house, batt, soc, grid, ev, plug, has: { pv: pv != null, battery: soc != null || batt != null, grid: grid != null, ev: !!(r.ev_power || r.ev_plug) } };
+    return { pv, sun, other: other == null ? null : Math.max(0, other), house, batt, soc, grid, ev, plug, has: { pv: pv != null, battery: soc != null || batt != null, grid: grid != null, ev: !!(r.ev_power || r.ev_plug) } };
   }
   _sig() {
     const f = this._flow(), b = (w) => w == null || Math.abs(w) < 30 ? 0 : (w > 0 ? 1 : -1) * (Math.abs(w) > 3000 ? 3 : Math.abs(w) > 1200 ? 2 : 1);
@@ -249,6 +275,7 @@ class EnergipilotCard extends HTMLElement {
       : v === "savings" ? this._savingsHtml() : v === "status" ? this._statusCard()
       : `${this._flowHtml()}${this._statusHtml()}${this._savingsHtml(true)}${this._batteryHtml(true)}${this._carHtml(true)}${this._planHtml(true)}`;
     this.shadowRoot.innerHTML = `<style>${CSS}</style><ha-card>${this._config.title ? `<div class="title">${esc(this._config.title)}</div>` : ""}${body}</ha-card>`;
+    if (MAC_APP && !this._macTimes) { this._macTimes = true; macTimes(this.shadowRoot); }
     this._wire();
   }
   _patch() {
@@ -257,8 +284,10 @@ class EnergipilotCard extends HTMLElement {
     const setv = (id, pair) => { const el = root.getElementById("v-" + id); if (el?.firstChild) { el.firstChild.nodeValue = pair[0]; const u = root.getElementById("u-" + id); if (u) u.textContent = pair[1] ? " " + pair[1] : ""; } };
     setv("sun", this._split(f.pv)); setv("house", this._split(f.house)); setv("grid", this._split(f.grid)); setv("battery", [this._n(f.soc, 0), "%"]);
     if (f.ev > 30) setv("car", this._split(f.ev));
+    const cs = root.getElementById("c-sun"); if (cs && f.other != null) cs.textContent = this._sunCap(f);
     const ring = root.getElementById("soc"); if (ring) ring.setAttribute("stroke-dashoffset", 2 * Math.PI * 38 * (1 - (f.soc || 0) / 100));
-    const bs = root.getElementById("bsoc"); if (bs?.firstChild) bs.firstChild.nodeValue = this._n(f.soc, 0);
+    const so = this._soc(f), bs = root.getElementById("bsoc"); if (bs?.firstChild) bs.firstChild.nodeValue = so.v;
+    const bss = root.getElementById("bsocs"); if (bss && so.s) bss.textContent = so.s;
     const bb = root.getElementById("bbar"); if (bb) bb.style.width = `${f.soc || 0}%`;
     this._countTo(this._saved("today"));
   }
@@ -307,7 +336,11 @@ class EnergipilotCard extends HTMLElement {
     return `<g transform="translate(${x} ${y})" class="node ${active ? "on" : ""}" style="--nc:${color}"><circle r="40" class="halo"/><circle r="33" class="nbg"/><circle r="33" fill="none" stroke="${color}" stroke-opacity=".6" stroke-width="1.4"/>${extra}
       <g transform="translate(-10 -21) scale(.84)" style="color:${color}"><svg width="24" height="24" viewBox="0 0 24 24" class="ic ${id === "sun" && active && !iconId ? "spin" : ""}" style="width:24px;height:24px">${iconId ? C_SCENE_ICONS[iconId] : P[id]}</svg></g>
       <text class="val" y="17" id="v-${id}">${value}<tspan class="unit" id="u-${id}">${unit ? " " + unit : ""}</tspan></text>
-      ${cap != null ? `<text class="cap" y="${above ? -42 : 50}">${esc(cap)}</text>` : ""}</g>`;
+      ${cap != null ? `<text class="cap" y="${above ? -42 : 50}" id="c-${id}">${esc(cap)}</text>` : ""}</g>`;
+  }
+  _sunCap(f) {  // with other power (wind …) the top node's caption tells the sun and the rest apart
+    const k = (w) => this._split(w).join(" ").trim();
+    return (f.other == null ? this.t.sun : `${this.t.sun} ${k(f.sun || 0)} · ${this.t.other} ${k(f.other)}`).toUpperCase();
   }
   _flowHtml() {
     const f = this._flow(), t = this.t, h = f.has, gc = (f.grid || 0) < -NOISE_W ? "#3ddc97" : "#6ea8fe", r = 38, c = 2 * Math.PI * r;
@@ -318,7 +351,7 @@ class EnergipilotCard extends HTMLElement {
       ${h.pv ? '<path class="base" d="M180 74 L180 116"/>' : ""}${h.grid ? '<path class="base" d="M286 150 L214 150"/>' : ""}
       ${h.battery ? '<path class="base" d="M74 150 L146 150"/>' : ""}${h.ev ? '<path class="base" d="M180 184 L180 228"/>' : ""}
       ${flowBeams(f, "g" + this._uid)}
-      ${h.pv ? this._node("sun", 180, 40, "#f5b544", pv, pvu, t.sun.toUpperCase(), "", true, (f.pv || 0) > 30, cardSunIcon(sc)) : ""}
+      ${h.pv ? this._node("sun", 180, 40, "#f5b544", pv, pvu, this._sunCap(f), "", true, (f.pv || 0) > 30, cardSunIcon(sc)) : ""}
       ${h.grid ? this._node("grid", 320, 150, gc, gr, gru, (f.grid < -NOISE_W ? t.sell : f.grid > NOISE_W ? t.buy : t.grid).toUpperCase(), "", false, Math.abs(f.grid || 0) > NOISE_W) : ""}
       ${this._node("house", 180, 150, "var(--ep-house)", ho, hou, null, cardHouseRing(sc), false, true)}
       ${h.battery ? this._node("battery", 40, 150, "#a78bfa", this._n(f.soc, 0), "%", (f.batt > NOISE_W ? t.charging : f.batt < -NOISE_W ? t.discharging : t.idle).toUpperCase(), ring, false, Math.abs(f.batt || 0) > NOISE_W) : ""}
@@ -344,12 +377,20 @@ class EnergipilotCard extends HTMLElement {
     if (!d || !d.kind) return "";
     return `<div class="status" style="--c:${COL[d.kind]}"><span class="sic">${ic(DICON[d.kind], 18)}</span><div><b>${esc(d.text)}</b><span>${t.reasons[d.kind]}</span></div></div>`;
   }
+  _soc(f) {
+    // kWh as the big number, the % and what can be used down to the floor small (#47) - the capacity from runtime.py's kWh
+    const r = this._hass.states[SENSOR].attributes.runtime, t = this.t;
+    const cap = r && r.soc > 0 && r.kwh != null ? r.kwh * 100 / r.soc : null;
+    if (!cap || f.soc == null) return { v: this._n(f.soc, 0), u: "%", s: "" };
+    const use = r.min_soc != null ? Math.max(0, (f.soc - r.min_soc) * cap / 100) : null;
+    return { v: this._n(f.soc * cap / 100, 1), u: "kWh", s: `${this._n(f.soc, 0)} %${use != null ? ` · ${this._n(use, 1)} kWh ${t.usable}` : ""}` };
+  }
   _batteryHtml(inline = false) {
     const f = this._flow(), d = this._hass.states[SENSOR].attributes.decision || {}, t = this.t;
     if (f.soc == null) return "";
     const state = f.batt > NOISE_W ? `${t.charging} ${this._split(f.batt).join(" ")}` : f.batt < -NOISE_W ? `${t.discharging} ${this._split(f.batt).join(" ")}` : t.idle;
     return `<div class="${inline ? "sec" : "pad"}"><div class="eyebrow">${ic("battery")} ${t.battery}<span>${d.target != null ? `${t.target} ${this._n(d.target, 0)} %` : ""}</span></div>
-      <div class="big"><span id="bsoc">${this._n(f.soc, 0)}</span><small>%</small> <em>${esc(state)}</em></div><div class="bar"><span id="bbar" style="width:${f.soc}%"></span></div>${this._runtimeHtml()}${inline ? "" : this._socCurve(f.soc)}</div>`;
+      <div class="big"><span id="bsoc">${this._soc(f).v}</span><small>${this._soc(f).u}</small> <em><span id="bsocs">${esc(this._soc(f).s)}</span>${this._soc(f).s ? " · " : ""}${esc(state)}</em></div><div class="bar"><span id="bbar" style="width:${f.soc}%"></span></div>${this._runtimeHtml()}${inline ? "" : this._socCurve(f.soc)}</div>`;
   }
   _socCurve(now) {
     // The battery's planned level the next 24 hours: a small curve, the charging hours shaded, "now" as a dot.
@@ -564,7 +605,8 @@ const CSS = `.muted2{opacity:.7;font-size:13px;margin:6px 0 10px}.chips2{display
   .tg { width:46px; height:28px; border-radius:14px; border:0; background:var(--disabled-color, #bbb); position:relative; cursor:pointer; flex:none; }
   .tg::after { content:""; position:absolute; top:2px; left:2px; width:24px; height:24px; border-radius:50%; background:#fff; transition:.2s; box-shadow:0 1px 3px rgba(0,0,0,.3); }
   .tg.on { background:#f472b6; } .tg.on::after { left:20px; }
-  input[type=time] { font:600 16px system-ui; color:var(--primary-text-color); background:var(--secondary-background-color); border:0; border-radius:10px; padding:6px 8px; }
+  input.mactime { width:4.6em; text-align:center; }
+  input[type=time], input.mactime { font:600 16px system-ui; color:var(--primary-text-color); background:var(--secondary-background-color); border:0; border-radius:10px; padding:6px 8px; }
   .rg { display:flex; align-items:center; gap:10px; flex:1; max-width:60%; } .rg input { flex:1; accent-color:#f472b6; } .rg i { font-style:normal; font-weight:600; min-width:56px; text-align:right; font-size:14px; }
   .evb { position:relative; height:7px; border-radius:5px; background:var(--secondary-background-color, rgba(127,127,127,.2)); margin:2px 0 10px; } .evb span { position:absolute; inset:0 auto 0 0; border-radius:5px; background:var(--car); }
   .evb i { position:absolute; top:-4px; width:2px; height:15px; margin-left:-1px; background:var(--primary-text-color); }
@@ -605,6 +647,6 @@ if (!customElements.get("energipilot-card")) {
   customElements.define("energipilot-card", EnergipilotCard);
   customElements.define("energipilot-card-editor", EnergipilotCardEditor);
   window.customCards = window.customCards || [];
-  window.customCards.push({ type: "energipilot-card", name: "Energipilot", preview: true,
-    description: "Energiflow, dagens plan, bilen og batteriet - kun det du har." });
+  window.customCards.push({ type: "energipilot-card", name: "Energy Pilot", preview: true,
+    description: "Energy flow, today's plan, the car and the battery - only what you have." });
 }

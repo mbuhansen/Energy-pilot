@@ -2,6 +2,34 @@
 
 Newest first. Each version lists what changed since the one before.
 
+## 0.108.0 – 2026-11-25
+
+- New optional role "Other generation (wind, hydro …)" under Sun: power made on the spot that can't be switched, such as a small wind turbine. It counts in the energy balance (house, surplus for the car, savings) and shows in the flow as "SUN · OTHER", but stays out of the solar forecast, solar learning and the shared hours. No forecast for it yet: the plan uses it as it comes
+- English outside the app: the add-on's name, description, sidebar title and docs tab are now in English (Energy Pilot), and the texts on sensor.energipilot follow Home Assistant's language instead of falling back to Danish. The companion device is called Energy Pilot (existing entity ids stay)
+
+## 0.107.8 – 2026-11-24
+
+- Savings, "Energy Pilot's own part": power bought cheaply and still in the battery at the end of the day no longer counts as a loss. The comparison with the inverter's own control now counts what each battery holds more than the other at what that power cost. Earlier days keep their old figure
+
+## 0.107.7 – 2026-11-24
+
+- Home Assistant's Mac app: tapping a time field (battery targets, your own tariff, "ready by") no longer crashes the whole app. In the Mac app only, time fields are plain text (07:30); "730" or "7.30" is understood. Browsers and the phone apps keep the normal time picker
+
+## 0.107.6 – 2026-11-24
+
+- Wallbox: "Ready" means no car is plugged in (and "Locked" that it can't charge) - the self-test no longer runs without a car and calls the charger broken. The same for Peblar's "no EV connected"
+- Self-test "normal": a battery resting at your own minimum is no longer a fault (it used a fixed 20 %, so a Sungrow at 30 % failed)
+
+## 0.107.5 – 2026-11-24
+
+- Battery tile on the front page and in the card: kWh in the battery is the big number, with the % and what can still be used down to your minimum below it. The whole tile now updates live, not just the % (#47)
+
+## 0.107.4 – 2026-11-24
+
+- A Deye whose model fits but that has none of Solarman's controls (through deye_modbus or Solar Assistant/MQTT) no longer gets the Solarman profile - the self-test found no controls there (#62, #63, #64)
+- Self-test, selling from the battery: when the battery discharges but nothing is sold, it says "export limit, or the house used it" instead of a fault (#61)
+- The shared house model can be fetched again (the report service answered every GET before reaching it)
+
 ## 0.107.3 – 2026-11-24
 
 Thanks to mbuhansen for all four:
