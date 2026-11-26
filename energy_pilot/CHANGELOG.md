@@ -2,6 +2,12 @@
 
 Newest first. Each version lists what changed since the one before.
 
+## 0.113.2 – 2026-11-26
+- Two or more batteries: with no spare sun, none of them may charge on "normal" - one can no longer fill itself from the other (each kept the grid at zero on its own, and power went round in a circle)
+- The house meter is never swapped while a battery's power isn't read - with one battery missing the meters can't add up, and a right house meter was swapped for one that reads 0 W at night
+## 0.113.1 – 2026-11-26
+- Sell fee (Settings → Grid, when selling is on): what selling one kWh costs, such as your supplier's fee - taken off every sell price, so the plan only sells when it still pays. Thanks to @mbuhansen
+- Kostal PLENTICORE L G3: "G3" is the generation, not 3 kW - the plan no longer holds grid charging to 3 kW. Thanks to @mbuhansen
 ## 0.113.0 – 2026-11-26
 - Things that run cheaply: pool pump. Set its hours a day - it runs them every day, on the sun first and the rest in the cheapest hours before midnight. Turned on by hand it stays on and the time counts. A pool pump on a smart plug is found by itself
 ## 0.112.0 – 2026-11-26
