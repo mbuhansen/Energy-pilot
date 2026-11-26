@@ -25,7 +25,7 @@
 
 | | |
 |---|---|
-| 🔍 **Sat op på to minutter** | Den finder selv sol, batteri, net, hus, bil og priser. Ingen YAML, ingen skabeloner. |
+| 🔍 **Sat op på to minutter** | Den finder selv sol, batteri, net, hus, bil og priser og viser dem med levende tal, så en forkert sensor springer i øjnene. Ingen YAML, ingen skabeloner. |
 | 👻 **Sikker fra start** | Den starter altid i *skygge*: den viser, hvad den ville gøre, men styrer intet, før du siger til. |
 | 🧠 **Lærer dit hjem** | En simpel prognose fra dag ét, og ML-modeller trænet hver nat på dine egne data overtager, når de rammer bedre. |
 | ⏱️ **Planlægger i kvarterer** | Bruger markedets egne perioder, så de billigste kvarterer bliver brugt. |
@@ -233,7 +233,7 @@ Marketplace (HACS): [energy-pilot-companion](https://github.com/Clahen86/energy-
 ## Mærker
 
 Alt går gennem enhedens egen Home Assistant-integration. Ingen profil til din? Vælg selv dens kontroller – eller dine
-egne scripts – for hvert trin under Indstillinger → Styring.<br>
+egne scripts – for hvert trin under Indstillinger → Husbatteri → Inverter-styring → Selv valgt.<br>
 ✅ kører i rigtig brug · 🧪 bygget ud fra integrationens egen kode, venter på en betatester med udstyret
 
 | | |
@@ -281,7 +281,9 @@ spotpriser (Energi Data Service, energy-charts.info) og valutakurser (ECB).
 
 **Hvad hvis internettet går ned?**
 
-Den planlægger videre med de priser og det vejr, den allerede har, og inverteren kører som normalt.
+Den planlægger videre med de priser og det vejr, den allerede har, og siger i appen, at den er uden internet. Invertere
+og ladere på dit eget netværk (Modbus, ESPHome, SolarAssistant …) styres stadig; en, der styres gennem producentens sky,
+venter, til nettet er tilbage – det står der i appen.
 
 **Skal jeg have et batteri?**
 

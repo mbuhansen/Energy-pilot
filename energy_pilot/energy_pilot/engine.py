@@ -155,6 +155,7 @@ class Battery:
     no_export: frozenset = frozenset()  # slots the battery must not sell in (the user keeps the cheap hours for charging)
     peak_kw: float | None = None  # power tariff: the month's peak so far - buying more costs peak_price per kW
     peak_price: float = 0.0
+    peak_free: frozenset = frozenset()  # slots that don't count toward the power tariff (nights, weekends …)
     targets: tuple = ()  # (hour, minute, soc %): the user wants at least this much in the battery at that time, every day
     at: tuple = ()  # (datetime, soc %): at least this much at that very time (a storm coming: storm.py)
     force: dict = field(default_factory=dict)  # "YYYY-MM-DDTHH" -> "charge" / "sell" / "hold": the user's own hours
@@ -345,7 +346,7 @@ def plan_battery(hours: list[Hour], soc_now: float, b: Battery, end_value: float
                 else:
                     cost = grid * h.price if grid > 0 else grid * h.sell
                 cost += abs(delta) * b.wear  # every kWh in or out wears the battery: a move must pay for that too
-                if b.peak_kw is not None and b.peak_price and grid / h.length > b.peak_kw:
+                if b.peak_kw is not None and b.peak_price and h.start not in b.peak_free and grid / h.length > b.peak_kw:
                     cost += (grid / h.length - b.peak_kw) * b.peak_price  # a new peak raises the month's power tariff
                 # Equal prices (a night tariff): charge in the first slots, not the last - a battery that slows down
                 # near full, or a slot the supplier moves, then still leaves it full. Far too small to change a choice
@@ -377,7 +378,7 @@ def plan_battery(hours: list[Hour], soc_now: float, b: Battery, end_value: float
         if base < 0 and b.export_limit_kw is not None:
             base = max(base, -b.export_limit_kw * h.length)  # without a battery the sun over the limit is lost too
         plan.cost_without += base * h.price if base > 0 else base * h.sell
-        if b.peak_kw is not None and b.peak_price and base / h.length > b.peak_kw:
+        if b.peak_kw is not None and b.peak_price and h.start not in b.peak_free and base / h.length > b.peak_kw:
             plan.cost_without += (base / h.length - b.peak_kw) * b.peak_price
         j = k
     plan.cost, plan.cost_without = round(plan.cost, 2), round(plan.cost_without, 2)
@@ -1150,10 +1151,13 @@ class Engine:
         from .sources import fetch_prices, price_area, solar_forecast
 
         if self.weather is not None:
+            before = getattr(self.weather, "_at", None)
             try:
                 await self.weather.refresh()
+                if getattr(self.weather, "_at", None) != before:
+                    self.net_ok()  # really fetched (it's kept an hour) - not just the kept copy
             except Exception:  # noqa: BLE001
-                pass
+                self.net_failed()
         st = self.ov.settings
         country = (self.ha.config.get("country") or "").upper()
         from .sources import ZONES, tou_prices
@@ -1173,13 +1177,29 @@ class Engine:
                 self.own_prices = await fetch_prices(self.ha.session, area, self.tz, {**st, "tariff": shared_tariff} if shared_tariff else st,
                                                      self.ha.config.get("currency") or "EUR")
                 self._prices_at = time.time()
+                self.net_ok()
             except Exception:  # noqa: BLE001
                 _LOGGER.info("No prices from Energi Data Service right now")
+                self.net_failed()
         # Its own (learned) forecast is always made: it's used when no forecast in the home gives the sun hour by hour.
         if self.solar_factors and self.weather:
             start = datetime.now(self.tz).replace(minute=0, second=0, microsecond=0)
             self.own_solar = solar_forecast(self.solar_factors, self.weather, [start + timedelta(hours=i) for i in range(48)])
         await self.refresh_ha_solar()
+
+    def net_ok(self) -> None:
+        self.net_down_since = None
+
+    def net_failed(self) -> None:
+        """A fetch from the internet failed (weather, prices): the first time is remembered - the plan then runs on
+        the last known prices, its own price guesses and the house's own history, and the user is told."""
+        if getattr(self, "net_down_since", None) is None:
+            self.net_down_since = time.time()
+
+    def offline_for(self) -> float | None:
+        """Seconds without internet (the weather and prices couldn't be fetched), or None."""
+        t = getattr(self, "net_down_since", None)
+        return time.time() - t if t else None
 
     async def refresh_ha_solar(self) -> None:
         """The solar forecasts set up in Home Assistant's Energy dashboard (Forecast.Solar, Open-Meteo, Solcast …),
@@ -1543,6 +1563,10 @@ class Engine:
                     bh = [replace(h, house=h.house + load.get(h.start, 0.0)) for h in hours]
             if st.get("battery_no_export_cheap"):
                 b = replace(b, no_export=cheap_slots(hours))  # no selling while power is cheap - only charging
+            if b.peak_price and st.get("power_tariff_hours"):
+                from .powertariff import counts
+
+                b = replace(b, peak_free=frozenset(h.start for h in hours if not counts(st, h.start)))
             end_value = end_price(bh, b) * end_f
             p = plan_battery(bh, f["soc"], b, end_value=end_value)
             # A daily cap on paid feed-in (15 kWh a day, say): what is sold past it earns nothing - the best-paid
@@ -1655,7 +1679,9 @@ class Engine:
         chosen = None
         if pt := self.power_tariff():
             # Power tariff: charge beside the peaks when that still gets the car full - else as usual.
-            over = {h.start for h in hours if h.house / h.length + kw > pt["limit_kw"]}
+            from .powertariff import counts
+
+            over = {h.start for h in hours if h.house / h.length + kw > pt["limit_kw"] and counts(st, h.start)}
             chosen = plan_car(hours, max(0.0, need), kw, ready, now, solar_only=st.get("ev_mode") == "solar", skip=skip | over)
             if sum(h.length for h in hours if h.start in set(chosen)) * kw < max(0.0, need) - 0.5:
                 chosen = None

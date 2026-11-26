@@ -7,6 +7,7 @@ nothing told the user. These checks look at what Energy Pilot has measured and p
 from __future__ import annotations
 
 import re
+import time
 from datetime import datetime
 from typing import Any
 
@@ -169,6 +170,17 @@ def run(engine: Any, hours: list, b: Any, plan: Any, end_value: float) -> list[d
 
     # 3c. Victron's persistent ESS limit "Max inverter power" (/Settings/CGwacs/MaxDischargePower) at 0: the battery can't
     #     discharge whatever Energy Pilot allows through the Hub4 override. Told, never changed.
+    # 3d. No internet: the plan runs on the last known prices and its own guesses - said, so a different plan isn't a
+    #     surprise. An inverter controlled through its maker's cloud can't be steered until it's back.
+    if (off := (engine.offline_for() if hasattr(engine, "offline_for") else None)) is not None and off >= 900:
+        from datetime import datetime as _dt
+        from .selftest import CLOUD
+
+        c = getattr(engine.ov, "controller", None)
+        key = c.profile_key("battery") if c is not None and hasattr(c, "profile_key") else None
+        since = _dt.fromtimestamp(time.time() - off, engine.tz).strftime("%H:%M")
+        out.append({"key": "offline_cloud" if key in CLOUD else "offline", "level": "warn", "vals": {"t": since}})
+
     ctl_ = getattr(engine.ov, "controller", None)
     gx = bool(ctl_ and hasattr(ctl_, "profile_key") and ctl_.profile_key("battery") == "victron_ha")  # its hold is that very limit at 0 - on purpose
     if not gx and (e := victron_limit(getattr(getattr(engine.ov, "ha", None), "states", None) or {})):
@@ -250,7 +262,44 @@ def run(engine: Any, hours: list, b: Any, plan: Any, end_value: float) -> list[d
     out += solaredge_storage(engine, st)
     out += alpha_period(engine)
     out += inverter_floor(engine, b)
+    out += peak_shaving(engine, b)
     return out
+
+
+PEAK = re.compile(r"grid_peak_shaving(_power)?$")
+
+
+def peak_shaving(engine: Any, b: Any) -> list[dict[str, Any]]:
+    """The inverter's own "grid peak shaving" below the main fuse set here: the inverter turns the battery's charging
+    down to keep the grid under its own number (a Deye at 10 kW held a 15 kW house there while the car charged).
+    Offered: set it to the limit here, in one tap."""
+    if b is None or not b.import_limit_kw:
+        return []
+    states = getattr(getattr(engine.ov, "ha", None), "states", None) or {}
+    for e in sorted(states):
+        if not e.startswith("number.") or not PEAK.search(e.split(".", 1)[1]):
+            continue
+        sw = states.get("switch." + e.split(".", 1)[1].removesuffix("_power"))
+        if sw is not None and sw.get("state") == "off":
+            continue  # peak shaving turned off: the number does nothing
+        a = (states.get(e) or {}).get("attributes") or {}
+        try:
+            v = float(states[e].get("state"))
+        except (TypeError, ValueError):
+            continue
+        kw = v / 1000 if str(a.get("unit_of_measurement") or "W").lower() == "w" else v
+        want = float(b.import_limit_kw)
+        if 0 < kw < want - 0.5:
+            mx = a.get("max")
+            val = want * 1000 if str(a.get("unit_of_measurement") or "W").lower() == "w" else want
+            if mx is not None:
+                try:
+                    val = min(val, float(mx))
+                except (TypeError, ValueError):
+                    pass
+            return [{"key": "peak_shaving", "level": "warn", "vals": {"inv": round(kw, 1), "ep": round(want, 1)},
+                     "fix": {"_set_number": {"entity_id": e, "value": val}}, "goto": "grid"}]
+    return []
 
 
 # Integrations that can only read the battery - and the one that can control it instead (with a link that opens it).

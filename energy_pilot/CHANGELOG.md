@@ -2,6 +2,22 @@
 
 Newest first. Each version lists what changed since the one before.
 
+## 0.113.0 – 2026-11-26
+- Things that run cheaply: pool pump. Set its hours a day - it runs them every day, on the sun first and the rest in the cheapest hours before midnight. Turned on by hand it stays on and the time counts. A pool pump on a smart plug is found by itself
+## 0.112.0 – 2026-11-26
+- Power tariff: "Counts only in" - weekdays, from-to and months. Many grid companies count only daytime hours on weekdays in winter: the month's peak is then measured only in those hours, and the plan charges freely at night and on weekends (up to your import limit)
+- Outside Denmark: one field for taxes and surcharge per kWh (energy tax plus your supplier's surcharge, excl. VAT) instead of the three grid tariff fields - VAT is added by itself. It also shows with Home Assistant's own Nord Pool, whose price is the bare spot price, and is added to it
+- An "Own tariff" chosen but never filled in no longer hides your own price sensor (there were no prices, no plan, and the shadow days never started counting)
+- A change to taxes, tariff or price area is used at once
+## 0.111.3 – 2026-11-26
+- Savings: today shows what you really paid - power bought for the battery counts when it's bought, and the saving comes when it's used
+## 0.111.2 – 2026-11-26
+- Cars: the "plugged in" sensor can be picked from the integration your car's battery level comes from, whatever the brand (Lynk & Co's charger connection status couldn't be picked). "Not plugged in" counts as not plugged in
+- The inverter's own grid limit (peak shaving) set lower than your limit here is found in the settings check - the inverter turned the battery down by itself at that number. "Fix it" sets it to your limit
+## 0.111.1 – 2026-11-25
+- Setup: what was found is shown with its numbers live and in words ("discharging 3.0 kW", "buying 515 W"), with a green "The numbers add up" or a red line when a sensor looks wrong. "Fix" opens just that one choice; all sensors are behind "Show all sensors"
+- No internet: after 15 minutes the app says so (and the Problem sensor turns on) - the plan runs on the last known prices and its own guesses, and everything at home is still controlled. With an inverter controlled through its maker's cloud it says the battery can't be steered until the internet is back
+- Your own setup with scripts: a short example in the app, and a full guide with all four scripts in the Documentation tab
 ## 0.111.0 – 2026-11-25
 - Sigenergy: hold no longer charges from the grid ("Command Charging (PV First)" is a grid charge) - it is self-consumption with discharging at 0
 - Tesla Powerwall and Enphase: hold sets the reserve to the level rounded down and turns grid charging off - a reserve above the level made them charge from the grid
