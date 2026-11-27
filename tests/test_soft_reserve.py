@@ -55,12 +55,20 @@ def _ctl(first, now, soc, soft=10.0):
     c.bat_parts = lambda: []
     c.intents()  # the first plan of the hour
     step["action"] = now  # a later plan of the same hour
+    _ctl.last = c
     return c.intents()["battery"]["intent"]
 
 
 def test_an_hour_planned_to_cover_the_house_runs_on_into_the_reserve():
     # The house took more than foreseen: the battery reached the soft floor early and the plan turned the rest into a hold
     assert _ctl("discharge", "hold", soc=10) == "normal"
+
+
+def test_the_plan_shows_the_hour_covered_from_the_reserve():
+    _ctl("discharge", "hold", soc=10)
+    assert _ctl.last.reserve_slot == "2026-11-27T20:00:00+00:00"
+    _ctl("hold", "hold", soc=10)
+    assert _ctl.last.reserve_slot is None
 
 
 def test_an_hour_planned_as_hold_keeps_the_reserve():

@@ -889,6 +889,8 @@ class Overview:
                         h["sell"] = round(self.engine.sell_at(sells, datetime.fromisoformat(st["t"]), fixed_sell), 3)
                     except Exception:  # noqa: BLE001 - the table just shows no feed-in price
                         pass
+                if st["action"] == "hold" and st["t"] == getattr(self.controller, "reserve_slot", None):
+                    h["reserve"] = True  # the battery covers the house from the reserve this hour (control.py)
                 if st["action"] in ("charge_grid", "charge_sun"):
                     h["charge"] = True
                 elif st["action"] == "export":

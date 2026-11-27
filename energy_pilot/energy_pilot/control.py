@@ -613,8 +613,10 @@ class Controller:
             # the battery reached the soft floor early, runs on into the reserve to the end of the hour - that's what the
             # reserve is for. The plan has turned the rest of the hour into a hold (it never plans below the floor).
             first = self._first_action(step)
+            self.reserve_slot = None
             if intent == "hold" and first == "discharge" and bat.soft_soc and (f["soc"] or 0) <= bat.soft_soc + 1                     and (f["soc"] or 0) > bat.min_soc and not sells_sun:
                 intent = "normal"
+                self.reserve_slot = step.get("t")  # the detailed plan shows the hour as covering the house from the reserve
             slot_h = (b.get("slot_min") or 60) / 60  # the step is one price slot (a quarter of an hour in Europe)
             # The time left of the slot: the battery is to reach the step's level by its end, so the power follows
             # what is really left - not the whole slot (that left the battery above the plan when the house used less).
