@@ -49,13 +49,13 @@ ROLES: dict[str, dict[str, Any]] = {
 }
 
 NOTES = {  # a short line under "Right now" when something automatic changes the plan
-    "da": {"away": "Ingen hjemme – planen regner med lavt forbrug, til nogen kommer hjem", "cold": "Batteriet er koldt og lader langsommere – planen tager højde for det", "power_down": "Octopus-session meldt til – batteriet gemmer strøm til den"},
-    "en": {"away": "Nobody home – the plan counts on low use until someone is back", "cold": "The battery is cold and charges slower – the plan allows for it", "power_down": "Octopus session joined – the battery keeps power for it"},
-    "de": {"away": "Niemand zu Hause – der Plan rechnet mit wenig Verbrauch, bis jemand zurück ist", "cold": "Die Batterie ist kalt und lädt langsamer – der Plan berücksichtigt das", "power_down": "Octopus-Session angemeldet – die Batterie hält Strom dafür bereit"},
-    "fr": {"away": "Personne à la maison – le plan compte sur une faible consommation jusqu'au retour", "cold": "La batterie est froide et charge plus lentement – le plan en tient compte", "power_down": "Session Octopus rejointe – la batterie garde de l\'énergie pour elle"},
-    "nl": {"away": "Niemand thuis – het plan rekent op weinig verbruik tot er iemand terug is", "cold": "De batterij is koud en laadt langzamer – het plan houdt er rekening mee", "power_down": "Octopus-sessie aangemeld – de batterij houdt stroom ervoor vast"},
-    "sv": {"away": "Ingen hemma – planen räknar med låg förbrukning tills någon är tillbaka", "cold": "Batteriet är kallt och laddar långsammare – planen tar hänsyn till det", "power_down": "Octopus-session anmäld – batteriet sparar el till den"},
-    "nb": {"away": "Ingen hjemme – planen regner med lavt forbruk til noen er tilbake", "cold": "Batteriet er kaldt og lader saktere – planen tar hensyn til det", "power_down": "Octopus-økt påmeldt – batteriet sparer strøm til den"},
+    "da": {"away": "Ingen hjemme – planen regner med lavt forbrug, til nogen kommer hjem", "cold": "Batteriet er koldt og lader langsommere – planen tager højde for det", "power_down": "Octopus-session meldt til – batteriet gemmer strøm til den", "power_up": "Gratis strøm fra Octopus – batteriet og bilen lader i den tid"},
+    "en": {"away": "Nobody home – the plan counts on low use until someone is back", "cold": "The battery is cold and charges slower – the plan allows for it", "power_down": "Octopus session joined – the battery keeps power for it", "power_up": "Free power from Octopus – the battery and the car charge in that time"},
+    "de": {"away": "Niemand zu Hause – der Plan rechnet mit wenig Verbrauch, bis jemand zurück ist", "cold": "Die Batterie ist kalt und lädt langsamer – der Plan berücksichtigt das", "power_down": "Octopus-Session angemeldet – die Batterie hält Strom dafür bereit", "power_up": "Kostenloser Strom von Octopus – Batterie und Auto laden in der Zeit"},
+    "fr": {"away": "Personne à la maison – le plan compte sur une faible consommation jusqu'au retour", "cold": "La batterie est froide et charge plus lentement – le plan en tient compte", "power_down": "Session Octopus rejointe – la batterie garde de l\'énergie pour elle", "power_up": "Électricité gratuite d\'Octopus – la batterie et la voiture chargent pendant ce temps"},
+    "nl": {"away": "Niemand thuis – het plan rekent op weinig verbruik tot er iemand terug is", "cold": "De batterij is koud en laadt langzamer – het plan houdt er rekening mee", "power_down": "Octopus-sessie aangemeld – de batterij houdt stroom ervoor vast", "power_up": "Gratis stroom van Octopus – de batterij en de auto laden in die tijd"},
+    "sv": {"away": "Ingen hemma – planen räknar med låg förbrukning tills någon är tillbaka", "cold": "Batteriet är kallt och laddar långsammare – planen tar hänsyn till det", "power_down": "Octopus-session anmäld – batteriet sparar el till den", "power_up": "Gratis el från Octopus – batteriet och bilen laddar under den tiden"},
+    "nb": {"away": "Ingen hjemme – planen regner med lavt forbruk til noen er tilbake", "cold": "Batteriet er kaldt og lader saktere – planen tar hensyn til det", "power_down": "Octopus-økt påmeldt – batteriet sparer strøm til den", "power_up": "Gratis strøm fra Octopus – batteriet og bilen lader i den tiden"},
 }
 
 DECISIONS = {
@@ -185,15 +185,15 @@ class Overview:
         for key, value in changes.items():
             if key == "roles":
                 self.settings.setdefault("roles", {}).update({k: v for k, v in value.items() if k in ROLES})
-            elif key in ("battery_kwh", "import_limit_kw", "language", "setup_done", "style", "price_area", "tariff", "markup", "price_source", "tou", "vat", "battery_min_soc", "grid_charge",
+            elif key in ("battery_kwh", "import_limit_kw", "fuse_a", "language", "setup_done", "style", "price_area", "tariff", "markup", "price_source", "tou", "vat", "battery_min_soc", "grid_charge",
                          "sell", "sell_price", "sell_fee", "solar_value", "ev_in_house", "battery_sign", "grid_sign", "grid_noise", "ev_follow_sun", "ev_fuse_guard",
-                         "battery_export", "battery_no_export_cheap", "scene_fx", "battery_wear", "battery_care", "battery_type", "battery_price", "fuse_ok", "own_history", "things", "things_dismissed", "power_tariff_price", "power_tariff_kind", "power_tariff_hours", "battery_grid_max", "export_limit_kw", "agile_region", "restore_values",
+                         "battery_export", "battery_no_export_cheap", "scene_fx", "battery_wear", "battery_care", "battery_type", "battery_price", "fuse_ok", "own_history", "things", "things_dismissed", "power_tariff_price", "power_tariff_kind", "power_tariff_hours", "battery_grid_max", "battery_soft_min", "export_limit_kw", "agile_region", "restore_values",
                          "offgrid", "reserve_soc", "emergency_soc", "gen_stop_soc", "gen_charge_kw", "gen_min_run_h",
                          "quiet_gen_from", "quiet_gen_to", "battery_charge_kw", "battery_discharge_kw", "ev_mode", "charger_kw", "ev_need_kwh",
                          "quiet_from", "quiet_to", "quiet_battery", "quiet_car",
                          "quiet_battery_from", "quiet_battery_to", "quiet_car_from", "quiet_car_to",
                          "control", "inverter_profile", "custom_profile", "battery_takeover", "ev_now", "ev_target", "ev_sun_target", "ev_trip", "ev_battery_kwh", "charger_phases", "ev_ready", "ev_switch", "ev_phase_switch",
-                         "batteries", "battery_dismissed", "chargers", "charger_dismissed", "battery_targets", "manual", "tariff_current", "tariff_show",
+                         "batteries", "battery_dismissed", "chargers", "charger_dismissed", "battery_targets", "manual", "car_manual", "tariff_current", "tariff_show",
                          # more cars than chargers (carlist.py)
                          "cars", "car_in", "car_in_manual", "car_in_sure",
                          # the self-test and what was mended by itself (selftest.py, autofix.py)
@@ -271,6 +271,24 @@ class Overview:
         if "sell_sun" in self.settings:
             return bool(self.settings["sell_sun"])
         return str(self.settings.get("first_seen") or "") >= "2026-11-17"
+
+    def phase_meters(self) -> list[str] | None:
+        """The grid meter's three phase currents, found by themselves (phases.py) - looked up again every 10 minutes."""
+        import time as _t
+
+        from . import phases
+
+        at, got = getattr(self, "_phase_meters", (0.0, None))
+        if _t.time() - at > 600:
+            got = phases.find(self.ha.states)
+            self._phase_meters = (_t.time(), got)
+        return got
+
+    def phase_room_a(self) -> float | None:
+        """Amps left on the busiest phase before the main fuse (fuse_a), or None."""
+        from . import phases
+
+        return phases.room_a(self.ha.states, self.phase_meters(), self.settings.get("fuse_a"))
 
     def bare_spot(self) -> bool:
         """The chosen price sensor is the bare exchange price (Home Assistant's own Nord Pool): no taxes, surcharge or
@@ -849,6 +867,10 @@ class Overview:
         for k, v in (self.settings.get("manual") or {}).items():
             if k in hours:
                 hours[k]["manual"] = v  # the user's own choice for that hour
+        for part, own in (self.settings.get("car_manual") or {}).items():
+            for k, v in (own or {}).items() if isinstance(own, dict) else ():
+                if k in hours:
+                    hours[k].setdefault("car_man", {})[part] = v  # the user's own choice for a car that hour
         # The plan shows Energy Pilot's own charging; another system's plan (AppDaemon) is only compared.
         res = (self.engine.result if self.engine else None) or {}
         # For the detailed plan (Plan > Detailed plan): what the battery does, what is bought (+) or sold (-), and the
@@ -943,7 +965,7 @@ class Overview:
         # Without helpers of its own, the car's buttons are Energy Pilot's (its settings); with a list of cars, the
         # ready time and "at most" are the car's in the charger.
         return {"manual": val("ev_manual") == "on" if r["ev_manual"] else bool(self.settings.get("ev_now")),
-                "ready": car.get("ready") if car else self._ready_hm(val("ev_ready")) if r["ev_ready"] else self.settings.get("ev_ready"),
+                "ready": (car.get("ready") or "") if car else self._ready_hm(val("ev_ready")) if r["ev_ready"] else self.settings.get("ev_ready"),
                 "cap": (car.get("need_kwh") or 20) if car else _num(st.get(r["ev_cap"])) if r["ev_cap"] else self.settings.get("ev_need_kwh"),
                 "car": carlist.view(self.settings, "car"),
                 "cap_max": ((st.get(r["ev_cap"]) or {}).get("attributes") or {}).get("max") if r["ev_cap"] else None,
@@ -972,7 +994,7 @@ class Overview:
                         "session_kwh": n.get("session_kwh"), "soc": n.get("soc"), "soc_known": soc_known,
                         "target": chargers.target(c), "everyday": chargers.target({**c, "trip": False}), "trip": bool(c.get("trip")),
                         "car_kwh": chargers.car_kwh(c) if soc_known else None,
-                        "manual": bool(c.get("now")), "ready": c.get("ready"), "cap": c.get("need_kwh") or 20,
+                        "manual": bool(c.get("now")), "ready": c.get("ready") or "", "cap": c.get("need_kwh") or 20,
                         "mode": c.get("mode") or "cheapest", "charger_kw": float(c.get("charger_kw") or 7.4),
                         "hours": p.get("hours") or [], "need_kwh": p.get("need_kwh"), "car": view(self.settings, f"car{i + 2}")})
         return out

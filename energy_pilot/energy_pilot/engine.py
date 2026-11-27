@@ -150,6 +150,7 @@ class Battery:
     wear: float = 0.0  # what one kWh into or out of the battery wears it (money per kWh) - a move must beat it
     ac_kw: float | None = None  # the inverter's AC power (invpower.py): grid charging and discharging go through it
     ac_sun: bool = False  # a hybrid: the sun goes out through the same AC side as the battery (counts against ac_kw)
+    soft_soc: float = 0.0  # % - a soft floor above min_soc: the plan keeps above it, but the battery may go below it
     export_limit_kw: float | None = None  # what may be sent to the grid
     taper: tuple = ()  # (from level, share of the charge power it really takes) - learned; most slow down near full
     no_discharge: frozenset = frozenset()  # slots the battery must not discharge in (the car charges on cheap power)
@@ -162,6 +163,7 @@ class Battery:
     force: dict = field(default_factory=dict)  # "YYYY-MM-DDTHH" -> "charge" / "sell" / "hold": the user's own hours
 
 
+SOFT_WEIGHT = 1.0  # a kWh planned out of the soft floor's buffer costs this share of the hour's price (as dear as buying)
 GENTLE = 0.0015  # gentle charging: the extra per kWh is 2 x GENTLE x kW of the typical price (1.8 % at 6 kW)
 STEP_KWH = 0.5  # the largest 2 % step the hourly plan takes (a 25 kWh battery); bigger ones step 1 %
 SUN_DOUBT = 0.15  # share of the way from the expected sun towards the poor day the battery plan counts on
@@ -366,6 +368,13 @@ def plan_battery(hours: list[Hour], soc_now: float, b: Battery, end_value: float
                     early += gentle * kw_grid * kw_grid * h.length
                 if forced[i] == "charge" and delta > 0 or forced[i] == "sell" and action == "export":
                     early -= abs(delta) * push  # as much as it can in the user's hour
+                if delta < 0 and nxt < b.soft_soc - 1e-9:
+                    # The soft floor (Predbat's best_soc_keep): the plan never counts on the buffer below it - taking a kWh
+                    # out of it costs as much as buying it then, so the night charge covers the day without it. It is for
+                    # use nobody foresaw: an hour planned to cover the house may run on into it (control.py). Being below
+                    # it costs nothing, so it is never a reason to buy dear power to fill it again.
+                    below = min(kwh(lv), kwh(b.soft_soc)) - kwh(nxt)
+                    early += below * max(0.0, h.price) * SOFT_WEIGHT
                 total = cost + early + best[i + 1][k]
                 if total < best[i][j] - 1e-12:
                     best[i][j] = total
@@ -484,23 +493,35 @@ def car_load(hours: list[Hour], planned: set | frozenset, kw: float, now_w: floa
 
 
 def plan_car(hours: list[Hour], need_kwh: float, charger_kw: float, ready: datetime | None, now: datetime,
-             solar_only: bool = False, skip: set | None = None) -> list[datetime]:
+             solar_only: bool = False, skip: set | None = None, pins: dict[str, str] | None = None) -> list[datetime]:
     """The hours to charge in: sun surplus first, then the cheapest - all before 'ready' (or within 24 h).
-    solar_only: only hours with a real surplus. skip: hours not to use (quiet hours, the battery's sun hours)."""
+    solar_only: only hours with a real surplus. skip: hours not to use (quiet hours, the battery's sun hours).
+    pins: the user's own hours in the plan ("YYYY-MM-DDTHH" -> "charge" / "skip"): a "charge" hour is always used, a
+    "skip" hour never - the rest is filled with the best hours as usual."""
     if need_kwh <= 0 or charger_kw <= 0:
         return []
+    pins = pins or {}
+    pin = lambda h: pins.get(h.start.strftime("%Y-%m-%dT%H"))
+    live = [h for h in hours if h.start > now - timedelta(hours=h.length)]
+    chosen = [h.start for h in live if pin(h) == "charge"]
+    got = sum(charger_kw * h.length for h in live if pin(h) == "charge")
     until = ready or now + timedelta(hours=24)
-    usable = [h for h in hours if now - timedelta(hours=h.length) < h.start < until and h.start not in (skip or set())
+    usable = [h for h in live if h.start < until and h.start not in (skip or set()) and not pin(h)
               and (not solar_only or h.sun - h.house >= charger_kw * h.length * 0.5)]
     # A surplus slot costs what the energy would have been sold for; others their price.
     ranked = sorted(usable, key=lambda h: h.sell if h.sun - h.house >= charger_kw * h.length * 0.7 else h.price)
-    chosen, got = [], 0.0
     for h in ranked:
         if got >= need_kwh:
             break
         chosen.append(h.start)
         got += charger_kw * h.length
     return sorted(chosen)
+
+
+def car_pins(settings: dict[str, Any], part: str) -> dict[str, str]:
+    """The user's own hours for one charger's car (settings["car_manual"][part]): "charge" or "skip"."""
+    own = ((settings.get("car_manual") or {}).get(part)) or {}
+    return {k: v for k, v in own.items() if v in ("charge", "skip")} if isinstance(own, dict) else {}
 
 
 # ---------- quarter-hour slots ----------
@@ -577,6 +598,9 @@ class Engine:
 
         self.things = Things(self.learning.state)
         self.batt_learn = BatteryLearner(self.learning.state)
+        from .acsteps import AcSteps
+
+        self.ac_steps = AcSteps(self.learning.state)  # the real round trip, from the grid (shown, not used yet)
         from .checks import GridPeak
 
         self.grid_peak = GridPeak(self.learning.state)  # the most the house has really bought
@@ -749,6 +773,7 @@ class Engine:
             peak_kw=(pt := self.power_tariff()) and pt["limit_kw"],
             peak_price=pt["price_per_kw"] if pt else 0.0,
             ac_kw=None if more else self.inverter_ac_kw(ctl),  # one inverter: its own AC power
+            soft_soc=self.soft_floor(min_soc),
             ac_sun=not more and bool(ctl and hasattr(ctl, "sun_through_ac") and ctl.sun_through_ac()),
         )
 
@@ -775,6 +800,14 @@ class Engine:
         """What the plan counts on the (first) car to take in an hour: the charger's power, capped at what the car was
         seen to take (see evsoc.charger_kw). Steering the charger keeps the charger's own."""
         return car_kw(self)
+
+    def soft_floor(self, min_soc: float) -> float:
+        """The soft floor the plan keeps above (Predbat's best_soc_keep): 0 when not set or not above the minimum."""
+        try:
+            soft = float(self.ov.settings.get("battery_soft_min") or 0)
+        except (TypeError, ValueError):
+            return 0.0
+        return soft if min_soc < soft <= 100 else 0.0
 
     def grid_max_soc(self, kind: str) -> float:
         """How full the battery may be charged from the grid: as set, else 95 % (NMC 90 %). Every 14 days without a
@@ -1507,6 +1540,7 @@ class Engine:
 
         return {"house": self.mixer.info("house"), "sun": self.mixer.info("sun"), "price": self.mixer.info("price"),
                 "battery": self.batt_learn.info(0.92), "car": self.habits.info(),
+                "ac": self.ac_steps.info(self.batt_learn._medians()),
                 "curve": self._curve_info(),
                 "common": self._common_info(common),
                 "sky": self.sky.info(self.home()),
@@ -1600,6 +1634,8 @@ class Engine:
 
         if _pd.apply(hours, now, self.ha.states):
             self.notes.append("power_down")
+        if _pd.apply_free(hours, now, self.ha.states):
+            self.notes.append("power_up")
         slot_min = round(hours[0].length * 60) if hours else 60
         self.now_slot = {"price": hours[0].price, "sell": hours[0].sell, "sun_f": hours[0].sun, "house_f": hours[0].house} if hours else {}
         f = self.ov.flow()
@@ -1624,7 +1660,11 @@ class Engine:
             if not car_plan:
                 pre = self._car(hours, now, f, set()) if f.get("plug") else None
                 need = pre["need"] if pre else self.habits.need(float(st.get("ev_need_kwh") or 20))
-                load = car_load(hours, (pre or {}).get("set") or set(), car_kw(self),
+                # A car in shadow is charged by something else (Monta, the car's own app): the slots Energy Pilot
+                # would pick won't happen, so only what it draws now counts - the live guard handles the rest.
+                ctl = getattr(self.ov, "controller", None)
+                ours = bool(ctl and ctl.mode("car") == "control")
+                load = car_load(hours, ((pre or {}).get("set") or set()) if ours else set(), car_kw(self),
                                 float(f.get("ev") or 0.0), need, now)
                 if load:
                     bh = [replace(h, house=h.house + load.get(h.start, 0.0)) for h in hours]
@@ -1743,17 +1783,18 @@ class Engine:
         if quiet := self.quiet_hours("car"):
             skip = skip | {h.start for h in hours if h.start.hour in quiet}
         kw = car_kw(self)
+        pins = car_pins(st, "car")
         chosen = None
         if pt := self.power_tariff():
             # Power tariff: charge beside the peaks when that still gets the car full - else as usual.
             from .powertariff import counts
 
             over = {h.start for h in hours if h.house / h.length + kw > pt["limit_kw"] and counts(st, h.start)}
-            chosen = plan_car(hours, max(0.0, need), kw, ready, now, solar_only=st.get("ev_mode") == "solar", skip=skip | over)
+            chosen = plan_car(hours, max(0.0, need), kw, ready, now, solar_only=st.get("ev_mode") == "solar", skip=skip | over, pins=pins)
             if sum(h.length for h in hours if h.start in set(chosen)) * kw < max(0.0, need) - 0.5:
                 chosen = None
         if chosen is None:
-            chosen = plan_car(hours, max(0.0, need), kw, ready, now, solar_only=st.get("ev_mode") == "solar", skip=skip)
+            chosen = plan_car(hours, max(0.0, need), kw, ready, now, solar_only=st.get("ev_mode") == "solar", skip=skip, pins=pins)
         return {"hours": [t.isoformat() for t in chosen], "set": set(chosen), "need": round(max(0.0, need), 1)}
 
     def _ghost_plans(self, hours: list[Hour], now: datetime, f: dict[str, Any], slot_min: int) -> None:
@@ -1809,7 +1850,7 @@ class Engine:
                 load[t] = load.get(t, 0.0) + car_kw(self)
         quiet = self.quiet_hours("car")
         out = []
-        for c, now_c in zip(more, f.get("cars") or [{}] * len(more)):
+        for i, (c, now_c) in enumerate(zip(more, f.get("cars") or [{}] * len(more))):
             kw = float(c.get("charger_kw") or 7.4)
             entry = {"name": c.get("name") or "", "plug": bool(now_c.get("plug")), "hours": [], "need_kwh": 0.0, "slot_min": slot_min}
             if now_c.get("plug"):
@@ -1821,7 +1862,8 @@ class Engine:
                 skip = {h.start for h in hours if h.start.hour in quiet}
                 if limit is not None:  # never more than the main fuse: house + the other cars + this one
                     skip |= {h.start for h in hours if h.house / h.length + load.get(h.start, 0.0) + kw > limit + 1e-9}
-                chosen = plan_car(hours, need, kw, ready, now, solar_only=c.get("mode") == "solar", skip=skip)
+                chosen = plan_car(hours, need, kw, ready, now, solar_only=c.get("mode") == "solar", skip=skip,
+                                  pins=car_pins(st, f"car{i + 2}"))
                 for t in chosen:
                     load[t] = load.get(t, 0.0) + kw
                 entry.update(hours=[t.isoformat() for t in chosen], need_kwh=round(need, 1))

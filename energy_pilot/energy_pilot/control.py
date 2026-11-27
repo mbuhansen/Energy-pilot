@@ -18,6 +18,7 @@ import asyncio
 from collections import deque
 from datetime import datetime, timedelta
 import logging
+import math
 import re
 import time
 from typing import Any
@@ -42,7 +43,10 @@ def steady(prev: dict | None, want: dict) -> dict:
         return want
     old, new = prev.get("ctx") or {}, dict(want.get("ctx") or {})
     try:
-        if abs(float(new["rate"]) - float(old["rate"])) < RATE_BAND:
+        # The rate is a share of the battery's top power: a new top (set by the user) at the same share is a new power
+        # all the same, and goes through (DK Deye, 2026-11-27: 7 kW -> 5 kW at 100 % kept the old current).
+        same_top = old.get("max_charge_w") == new.get("max_charge_w")
+        if same_top and abs(float(new["rate"]) - float(old["rate"])) < RATE_BAND:
             for k in ("rate", "power_w", "power_kw", "charge_a"):
                 if k in old:
                     new[k] = old[k]
@@ -403,6 +407,36 @@ class Controller:
         hold = str(steps.get("hold") or "")
         return bool(steps.get("hold_sun")) or "{max_charge_w}" in hold or "{max_charge_kw}" in hold
 
+    SUN_CAR_MIN_W = 1400  # a charger's least (6 A on one phase)
+    SUN_CAR_WAIT_S = 15 * 60  # held back this long and the car takes nothing: it is full, or the charger won't
+    SUN_CAR_REST_S = 60 * 60
+
+    def _sun_to_car(self, f: dict[str, Any], now: float | None = None) -> bool:
+        """Keep the sun out of the battery for the car? Only with "Car first", a charger Energy Pilot doesn't run
+        (it follows the sun by itself), the car plugged in and short of its target, and a surplus it can use."""
+        import time as _time
+
+        now = _time.time() if now is None else now
+        st = self.ov.settings
+        s = self.__dict__.setdefault("_suncar", {"since": None, "rest": 0.0})
+        ev = self.ov.ev() or {}
+        surplus = (f.get("pv") or 0.0) - (f.get("house") or 0.0) + max(0.0, f.get("ev") or 0.0)
+        soc, target = ev.get("soc"), ev.get("target")
+        want = (st.get("style") == "car_first" and self.mode("car") != "control" and bool(f.get("plug"))
+                and self.can_block_sun() and surplus >= self.SUN_CAR_MIN_W and now >= s["rest"]
+                and not (soc is not None and target is not None and float(soc) >= float(target)))
+        if not want:
+            s["since"] = None
+            return False
+        if (f.get("ev") or 0.0) > 300:
+            s["since"] = now  # the car takes it: keep going
+        elif s["since"] is None:
+            s["since"] = now
+        elif now - s["since"] > self.SUN_CAR_WAIT_S:
+            s["since"], s["rest"] = None, now + self.SUN_CAR_REST_S  # nothing taken: the battery gets the sun again
+            return False
+        return True
+
     def _selling_sun_pays(self, steps: list[dict[str, Any]], bat: Any) -> bool:
         """Does selling the sun's surplus now beat storing it? The plan moves in whole steps of the level (2 % of a big
         battery is about 1 kWh), so a surplus smaller than a step shows as a hold that sells - not as a choice. A kWh of
@@ -545,6 +579,14 @@ class Controller:
             blk = self._block = (act, adapters.window_start(now))
         return adapters.alpha_windows(now, blk[1], end if act in ("charge_grid", "export") else None)
 
+    def _first_action(self, step: dict[str, Any]) -> str | None:
+        """What the plan first wanted for this step's slot - kept while the slot lasts, as later plans change it."""
+        key = str(step.get("t"))
+        seen = getattr(self, "_first_seen", None)
+        if not seen or seen[0] != key:
+            seen = self._first_seen = (key, step.get("action"))
+        return seen[1]
+
     def intents(self) -> dict[str, dict[str, Any]]:
         res = (self.engine.result or {}) if self.engine else {}
         out: dict[str, dict[str, Any]] = {}
@@ -567,6 +609,12 @@ class Controller:
                 and step["action"] == "hold" and self._selling_sun_pays(b["steps"], bat)
             if intent == "hold" and (step.get("grid") or 0.0) <= 0.01 and not sells_sun:
                 intent = "normal"
+            # The soft reserve: an hour first planned to cover the house, where the house took more than foreseen and
+            # the battery reached the soft floor early, runs on into the reserve to the end of the hour - that's what the
+            # reserve is for. The plan has turned the rest of the hour into a hold (it never plans below the floor).
+            first = self._first_action(step)
+            if intent == "hold" and first == "discharge" and bat.soft_soc and (f["soc"] or 0) <= bat.soft_soc + 1                     and (f["soc"] or 0) > bat.min_soc and not sells_sun:
+                intent = "normal"
             slot_h = (b.get("slot_min") or 60) / 60  # the step is one price slot (a quarter of an hour in Europe)
             # The time left of the slot: the battery is to reach the step's level by its end, so the power follows
             # what is really left - not the whole slot (that left the battery above the plan when the house used less).
@@ -577,6 +625,31 @@ class Controller:
             except (KeyError, TypeError, ValueError):
                 pass
             charge_kw = min(bat.max_charge_kw, max(0.5, (step["soc"] - (f["soc"] or 0)) / 100 * bat.capacity_kwh / left_h))
+            if intent == "charge" and bat.import_limit_kw and f.get("house") is not None:
+                # The plan counted on what the house was expected to use; the oven and the kettle on at once can take
+                # the house over the import limit (the main fuse, a contract's cap) while the battery charges. The
+                # charge gives way to what the house really uses now - the car's charging does the same (carspeed.py).
+                ev_apart = 0.0 if (self.engine and self.engine.ev_in_house()) else float(f.get("ev") or 0.0)
+                use_kw = max(0.0, float(f.get("house") or 0.0) + ev_apart - float(f.get("pv") or 0.0)) / 1000
+                room = bat.import_limit_kw - use_kw - 0.2  # a little margin for the next minute
+                if room < charge_kw:
+                    if room < 0.3:
+                        intent, charge_kw = "hold", 0.5  # no room at all: wait, the plan picks it up again
+                    else:
+                        charge_kw = math.floor(room * 10) / 10  # in 100 W steps, not re-sent at every wobble
+            if intent == "charge" and (ra := getattr(self.ov, "phase_room_a", lambda: None)()) is not None:
+                # The main fuse per phase (phases.py): the busiest phase stays under it. The meter already counts what
+                # the battery takes now, so that comes back on top of the room left.
+                from .phases import VOLT, battery_phases
+
+                ph = battery_phases(bat.max_charge_kw)
+                now_a = max(0.0, float(f.get("battery") or 0.0)) / (VOLT * ph)
+                fit_kw = (ra + now_a) * VOLT * ph / 1000
+                if fit_kw < charge_kw:
+                    if fit_kw < 0.3:
+                        intent, charge_kw = "hold", 0.5
+                    else:
+                        charge_kw = math.floor(fit_kw * 10) / 10
             export_w = 0
             if intent == "export":  # the battery's discharge power: the house's share and what is sold
                 charge_kw = min(bat.max_discharge_kw, max(0.5, ((f["soc"] or 0) - step["soc"]) / 100 * bat.capacity_kwh / left_h))
@@ -601,6 +674,11 @@ class Controller:
             # hold still takes the sun). Only inverters whose hold sets the charge limit can do this.
             if intent == "hold" and sells_sun:
                 out["battery"]["ctx"].update(max_charge_w=0, max_charge_kw=0, sell_sun=True)
+            # "Car first" with a charger that follows the sun by itself (a Zappi on Eco+, a car's own solar mode):
+            # the battery holds the sun back, so the surplus shows on the grid and the charger takes it.
+            if intent in ("normal", "hold") and self._sun_to_car(f):
+                out["battery"]["intent"] = "hold"
+                out["battery"]["ctx"].update(max_charge_w=0, max_charge_kw=0, sun_car=True)
         # The car charging: the battery plan has its charge in (engine.car_load) and decides itself whether the
         # battery helps it or holds - no fixed rule here.
         if out.get("battery") and self.bat_parts():
@@ -615,7 +693,8 @@ class Controller:
             slot = int(car.get("slot_min") or 60)
             hour = now.replace(minute=now.minute // slot * slot if slot < 60 else 0, second=0, microsecond=0)  # the slot now
             planned = {datetime.fromisoformat(t) for t in (car.get("hours") or [])}
-            manual = bool(self.ov.settings.get("ev_now"))
+            # "Charge now" as the panel shows it: the owner's own helper when there is one, else the setting
+            manual = bool((self.ov.ev() or {}).get("manual"))
             from .carspeed import decide
 
             st = dict(self.ov.settings)
@@ -639,6 +718,7 @@ class Controller:
                 bat = self.engine.settings()
                 if not bat.grid_charge and f["soc"] < bat.max_soc - 1:
                     st["batt_sun_w"] = bat.max_charge_kw * 1000  # only the sun can fill it: it gets the sun first
+            st["phase_room_a"] = getattr(self.ov, "phase_room_a", lambda: None)()  # the main fuse per phase (carspeed.py)
             st["min_a"] = adapters.lowest_amps(getattr(self, "entities", {}).get("car", []), getattr(getattr(self, "ha", None), "states", {}))
             st.update(self._phase_settings("car", st))
             d = decide(f, st, hour in planned, manual, need, self._sun_on)

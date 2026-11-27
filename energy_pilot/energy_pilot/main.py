@@ -204,6 +204,14 @@ async def main() -> None:
         await ha.connected.wait()
         await asyncio.sleep(90)
         while True:
+            try:
+                # A grid charge under an import limit: looked at every minute, so it gives way soon when the house
+                # suddenly takes more (the oven, the kettle) - the plan's own round can be five minutes.
+                last = (controller.last.get("battery") or {}) if hasattr(controller, "last") else {}
+                if last.get("intent") == "charge" and controller.mode("battery") == "control" and (engine.settings().import_limit_kw or overview.settings.get("fuse_a")):
+                    await controller.tick(("battery", *controller.bat_parts()))
+            except Exception:  # noqa: BLE001
+                logging.getLogger("energy_pilot.engine").debug("Charge limit check failed", exc_info=True)
             for job in (controller.keep, controller.guard, controller.recheck):
                 try:
                     await job()
@@ -292,6 +300,12 @@ async def main() -> None:
                 if trip_done({"ev_trip": car1.get("trip")} if car1 else st, f.get("plug"), getattr(engine, "_was_plugged", False), ev.get("soc")):
                     # the car left full: back to the everyday target
                     overview.save(carlist.update_car(st, car1["id"], {"trip": False}) if car1 else {"ev_trip": False})
+                try:
+                    from .evsoc import end_charge_now
+
+                    await end_charge_now(overview, ha, getattr(engine, "_was_plugged", False), getattr(engine, "_was_plugged_extra", {}))
+                except Exception:  # noqa: BLE001 - tried again when it is plugged in and out next time
+                    logging.getLogger("energy_pilot.engine").warning("Could not turn off charge now", exc_info=True)
                 engine._was_plugged = bool(f.get("plug"))
                 # an extra car's trip button the same: off when it leaves full
                 was = getattr(engine, "_was_plugged_extra", {})
@@ -308,6 +322,7 @@ async def main() -> None:
                             overview.save({"chargers": conf})
                 engine._was_plugged_extra = {i: bool(x.get("plug")) for i, x in enumerate(extra)}
                 engine.batt_learn.see(f.get("battery"), f.get("soc"), 30 / 3600)
+                engine.ac_steps.see(__import__("time").time(), f)
                 engine.batt_learn.see_temp(f.get("battery"), f.get("soc"), engine.battery_temp())
                 engine.grid_peak.see(now, f.get("grid"))
                 engine.export_cap.see(now, f.get("grid"))

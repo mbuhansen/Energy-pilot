@@ -2,6 +2,31 @@
 
 Newest first. Each version lists what changed since the one before.
 
+## 0.119.1 – 2026-11-27
+- Faster updates: the large part of the add-on (the maths libraries) is kept between versions, so an update only downloads what changed. The first update after this one still downloads it all once
+## 0.119.0 – 2026-11-27
+- The car's own hours in the plan: tap an hour and choose "Charge the car here" (always used, the rest filled with the best hours) or "Not the car here" (never used). Each charger has its own choice, kept until the car is plugged in
+## 0.118.3 – 2026-11-27
+- "Charge now" is for one charge: it turns off by itself when the car is unplugged, so the next plug-in follows the plan again. For your own helper, the panel's button and extra chargers alike
+## 0.118.2 – 2026-11-27
+- GivEnergy (GivEnergy Local) without the battery pause mode (older firmware) is now controlled: keeping the power sets the discharge limit to 0 W, and normal and selling put it back to full (#92)
+## 0.118.1 – 2026-11-27
+- "Charge now" works again when it's tied to your own helper (an input_boolean): the charger now starts at once, not only the button in the panel
+## 0.118.0 – 2026-11-27
+- "Car first" with a charger that follows the sun by itself (a Zappi on Eco+ and the like): while the car is plugged in and short of its target, the battery keeps the sun's surplus out, so the charger gets it. If the car takes nothing for 15 minutes, the battery gets the sun again for an hour
+## 0.117.0 – 2026-11-27
+- Octopus free electricity (Power Up) sessions are found by itself through the Octopus Energy integration and planned as free power, so the battery and the car charge in them - the price sensor doesn't show them
+- A car charged by something else (the charger's own app or schedule): the battery's grid charge no longer keeps room under the import limit for car slots Energy Pilot only guessed. Only what the car really draws counts, and the battery still turns down within a minute when the car starts
+## 0.116.0 – 2026-11-27
+- Main fuse per phase: a meter with a current per phase (SlimmeLezer, HomeWizard P1 and the like) is found by itself, and "Main fuse per phase (A)" shows under Grid. The battery's grid charge and the car turn down within a minute before the busiest phase reaches the fuse - the house can draw unevenly, under the kW limit as a whole but over the fuse on one phase
+## 0.115.1 – 2026-11-27
+- Battery charge power changed while it charges from the grid: the new power is sent to the inverter at once - before, a charge at full speed stayed at the old current until the next stop
+## 0.115.0 – 2026-11-27
+- Battery efficiency measured on the grid: each time the battery starts or stops, the jump on the grid meter shows what it really takes and gives, the inverter's own loss included. Shown under "What it has learned" - the plan doesn't use it yet
+## 0.114.3 – 2026-11-27
+- Car: "Ready at" is back for a car picked from the list that has no ready time yet - the field was hidden, so there was no way to set one
+## 0.114.2 – 2026-11-26
+- Import limit: the battery's grid charge gives way within a minute when the house suddenly uses more than expected (the oven, the kettle), so the house stays under the limit - the car already did this
 ## 0.114.1 – 2026-11-26
 - Big batteries (over 25 kWh) plan in 1 % steps - a 2 % step was more than the house used in an hour, so the plan charged too little at night. Thanks to @mbuhansen
 - The value of what the battery holds at the day's end is learned right: an empty battery no longer looks free (the learned value starts again from neutral, once). Thanks to @mbuhansen
