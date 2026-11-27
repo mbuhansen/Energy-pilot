@@ -579,6 +579,14 @@ class Controller:
             blk = self._block = (act, adapters.window_start(now))
         return adapters.alpha_windows(now, blk[1], end if act in ("charge_grid", "export") else None)
 
+    def _first_action(self, step: dict[str, Any]) -> str | None:
+        """What the plan first wanted for this step's slot - kept while the slot lasts, as later plans change it."""
+        key = str(step.get("t"))
+        seen = getattr(self, "_first_seen", None)
+        if not seen or seen[0] != key:
+            seen = self._first_seen = (key, step.get("action"))
+        return seen[1]
+
     def intents(self) -> dict[str, dict[str, Any]]:
         res = (self.engine.result or {}) if self.engine else {}
         out: dict[str, dict[str, Any]] = {}
@@ -600,6 +608,12 @@ class Controller:
             sells_sun = (step.get("grid") or 0.0) < -0.01 and getattr(self.ov, "sell_sun", lambda: False)() and self.can_block_sun() \
                 and step["action"] == "hold" and self._selling_sun_pays(b["steps"], bat)
             if intent == "hold" and (step.get("grid") or 0.0) <= 0.01 and not sells_sun:
+                intent = "normal"
+            # The soft reserve: an hour first planned to cover the house, where the house took more than foreseen and
+            # the battery reached the soft floor early, runs on into the reserve to the end of the hour - that's what the
+            # reserve is for. The plan has turned the rest of the hour into a hold (it never plans below the floor).
+            first = self._first_action(step)
+            if intent == "hold" and first == "discharge" and bat.soft_soc and (f["soc"] or 0) <= bat.soft_soc + 1                     and (f["soc"] or 0) > bat.min_soc and not sells_sun:
                 intent = "normal"
             slot_h = (b.get("slot_min") or 60) / 60  # the step is one price slot (a quarter of an hour in Europe)
             # The time left of the slot: the battery is to reach the step's level by its end, so the power follows

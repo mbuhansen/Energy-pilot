@@ -368,11 +368,11 @@ def plan_battery(hours: list[Hour], soc_now: float, b: Battery, end_value: float
                     early += gentle * kw_grid * kw_grid * h.length
                 if forced[i] == "charge" and delta > 0 or forced[i] == "sell" and action == "export":
                     early -= abs(delta) * push  # as much as it can in the user's hour
-                if delta < 0 and nxt < b.soft_soc - 1e-9 and not (i == 0 and lv <= b.soft_soc + 1e-9):
+                if delta < 0 and nxt < b.soft_soc - 1e-9:
                     # The soft floor (Predbat's best_soc_keep): the plan never counts on the buffer below it - taking a kWh
-                    # out of it later costs as much as buying it then, so the night charge covers the day without it. The
-                    # battery itself stops at min_soc, so the buffer is there for use nobody foresaw: once the battery is in
-                    # it (the house took more), the hour now may use it. Never a reason to buy dear power to fill it again.
+                    # out of it costs as much as buying it then, so the night charge covers the day without it. It is for
+                    # use nobody foresaw: an hour planned to cover the house may run on into it (control.py). Being below
+                    # it costs nothing, so it is never a reason to buy dear power to fill it again.
                     below = min(kwh(lv), kwh(b.soft_soc)) - kwh(nxt)
                     early += below * max(0.0, h.price) * SOFT_WEIGHT
                 total = cost + early + best[i + 1][k]

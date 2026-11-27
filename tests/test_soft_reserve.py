@@ -34,11 +34,45 @@ def test_the_soft_floor_is_kept_through_the_dear_hours():
     assert min(lv[:8]) >= 15 - 1e-6  # kept above it while more dear hours follow
 
 
-def test_the_soft_floor_is_soft():
-    # Little in the battery and only dear hours left: it still uses what is below the soft floor.
-    hours = [Hour(T0 + timedelta(hours=i), 4.0, 2.0, 1.0, 0.0) for i in range(2)]
-    lv = _levels(plan_battery(hours, 14, _battery(soft=15), end_value=2.0))
-    assert lv[-1] < 14
+def test_below_the_soft_floor_it_never_buys_dear_to_fill_it():
+    # Already in the reserve with only dear hours left: it holds (buys for the house), it doesn't charge.
+    hours = [Hour(T0 + timedelta(hours=i), 4.0, 2.0, 1.0, 0.0) for i in range(3)]
+    plan = plan_battery(hours, 12, _battery(soft=15), end_value=2.0)
+    assert all(s.action != "charge_grid" for s in plan.steps)
+    assert all(s.soc_end >= 12 - 1e-6 for s in plan.steps)
+
+
+def _ctl(first, now, soc, soft=10.0):
+    from energy_pilot import control as C
+
+    c = C.Controller.__new__(C.Controller)
+    bat = Battery(capacity_kwh=45, max_charge_kw=11.85, max_discharge_kw=11.85, min_soc=5, soft_soc=soft)
+    step = {"t": "2026-11-27T20:00:00+00:00", "action": first, "soc": 10, "grid": 1.2}
+    c.engine = SimpleNamespace(result={"battery": {"steps": [step], "slot_min": 60, "target": 10}}, settings=lambda: bat)
+    c.ov = SimpleNamespace(flow=lambda: {"soc": soc, "house": 1500, "pv": 0}, settings={"inverter_profile": "victron"}, sell_sun=lambda: False, ev=lambda: None)
+    c.ha = SimpleNamespace(config={"time_zone": "UTC"})
+    c.car_why = ""
+    c.bat_parts = lambda: []
+    c.intents()  # the first plan of the hour
+    step["action"] = now  # a later plan of the same hour
+    return c.intents()["battery"]["intent"]
+
+
+def test_an_hour_planned_to_cover_the_house_runs_on_into_the_reserve():
+    # The house took more than foreseen: the battery reached the soft floor early and the plan turned the rest into a hold
+    assert _ctl("discharge", "hold", soc=10) == "normal"
+
+
+def test_an_hour_planned_as_hold_keeps_the_reserve():
+    assert _ctl("hold", "hold", soc=10) == "hold"
+
+
+def test_at_the_real_minimum_it_holds():
+    assert _ctl("discharge", "hold", soc=5) == "hold"
+
+
+def test_without_a_soft_floor_nothing_changes():
+    assert _ctl("discharge", "hold", soc=10, soft=0.0) == "hold"
 
 
 def test_a_soft_floor_at_or_below_the_minimum_is_off():
