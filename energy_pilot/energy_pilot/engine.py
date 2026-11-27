@@ -150,6 +150,7 @@ class Battery:
     wear: float = 0.0  # what one kWh into or out of the battery wears it (money per kWh) - a move must beat it
     ac_kw: float | None = None  # the inverter's AC power (invpower.py): grid charging and discharging go through it
     ac_sun: bool = False  # a hybrid: the sun goes out through the same AC side as the battery (counts against ac_kw)
+    soft_soc: float = 0.0  # % - a soft floor above min_soc: the plan keeps above it, but the battery may go below it
     export_limit_kw: float | None = None  # what may be sent to the grid
     taper: tuple = ()  # (from level, share of the charge power it really takes) - learned; most slow down near full
     no_discharge: frozenset = frozenset()  # slots the battery must not discharge in (the car charges on cheap power)
@@ -162,6 +163,7 @@ class Battery:
     force: dict = field(default_factory=dict)  # "YYYY-MM-DDTHH" -> "charge" / "sell" / "hold": the user's own hours
 
 
+SOFT_WEIGHT = 1.0  # a kWh planned out of the soft floor's buffer costs this share of the hour's price (as dear as buying)
 GENTLE = 0.0015  # gentle charging: the extra per kWh is 2 x GENTLE x kW of the typical price (1.8 % at 6 kW)
 STEP_KWH = 0.5  # the largest 2 % step the hourly plan takes (a 25 kWh battery); bigger ones step 1 %
 SUN_DOUBT = 0.15  # share of the way from the expected sun towards the poor day the battery plan counts on
@@ -366,6 +368,13 @@ def plan_battery(hours: list[Hour], soc_now: float, b: Battery, end_value: float
                     early += gentle * kw_grid * kw_grid * h.length
                 if forced[i] == "charge" and delta > 0 or forced[i] == "sell" and action == "export":
                     early -= abs(delta) * push  # as much as it can in the user's hour
+                if delta < 0 and nxt < b.soft_soc - 1e-9 and not (i == 0 and lv <= b.soft_soc + 1e-9):
+                    # The soft floor (Predbat's best_soc_keep): the plan never counts on the buffer below it - taking a kWh
+                    # out of it later costs as much as buying it then, so the night charge covers the day without it. The
+                    # battery itself stops at min_soc, so the buffer is there for use nobody foresaw: once the battery is in
+                    # it (the house took more), the hour now may use it. Never a reason to buy dear power to fill it again.
+                    below = min(kwh(lv), kwh(b.soft_soc)) - kwh(nxt)
+                    early += below * max(0.0, h.price) * SOFT_WEIGHT
                 total = cost + early + best[i + 1][k]
                 if total < best[i][j] - 1e-12:
                     best[i][j] = total
@@ -764,6 +773,7 @@ class Engine:
             peak_kw=(pt := self.power_tariff()) and pt["limit_kw"],
             peak_price=pt["price_per_kw"] if pt else 0.0,
             ac_kw=None if more else self.inverter_ac_kw(ctl),  # one inverter: its own AC power
+            soft_soc=self.soft_floor(min_soc),
             ac_sun=not more and bool(ctl and hasattr(ctl, "sun_through_ac") and ctl.sun_through_ac()),
         )
 
@@ -790,6 +800,14 @@ class Engine:
         """What the plan counts on the (first) car to take in an hour: the charger's power, capped at what the car was
         seen to take (see evsoc.charger_kw). Steering the charger keeps the charger's own."""
         return car_kw(self)
+
+    def soft_floor(self, min_soc: float) -> float:
+        """The soft floor the plan keeps above (Predbat's best_soc_keep): 0 when not set or not above the minimum."""
+        try:
+            soft = float(self.ov.settings.get("battery_soft_min") or 0)
+        except (TypeError, ValueError):
+            return 0.0
+        return soft if min_soc < soft <= 100 else 0.0
 
     def grid_max_soc(self, kind: str) -> float:
         """How full the battery may be charged from the grid: as set, else 95 % (NMC 90 %). Every 14 days without a
